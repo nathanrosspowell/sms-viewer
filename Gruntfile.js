@@ -20,8 +20,11 @@ module.exports = function(grunt) {
         files: [
           {
             expand: true, 
-            flatten: true, 
-            src: ['src/index.html'], 
+            cwd: "src/",
+            src: [
+                '**/*',
+                '!**/*.swp'
+            ],
             dest: temp
           }
         ],
@@ -46,7 +49,7 @@ module.exports = function(grunt) {
             src: [
               '**/*',
             ],
-            dest: build,
+            dest: build
           }
         ]
       }
