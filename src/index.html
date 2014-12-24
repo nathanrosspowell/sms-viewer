@@ -8,6 +8,11 @@
 </head>
 <body>
  
+<div class="ui-widget">
+  <label for="names">Names: </label>
+  <input id="names">
+</div>
+
 <div id="projects">
     <h3>jQuery Core</h3>
     <p>jQuery is a fast, small, and feature-rich JavaScript library...</p>
@@ -20,20 +25,23 @@
 <script src="../bower_components/jquery/dist/jquery.min.js"></script>
 <script src="../bower_components/jquery-ui/jquery-ui.min.js"></script>
 <script>
-    var testXml = '<smses count="983">' +
-  '<sms protocol="0" address="+10000000012" date="1383084883788" type="1" subject="null"' +
-       'body="Still at work?" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0"' +
-       'readable_date="2013-10-29 6:14:43 PM" contact_name="Kevin" />' +
-  '<sms protocol="0" address="+10000000012" date="1383085269741" type="2" subject="null"' +
-       'body="Nah,  work is for chumps! " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0"' +
-       'readable_date="2013-10-29 6:21:09 PM" contact_name="Kevin" />' +
-  '<sms protocol="0" address="+10000000054" date="1383344146838" type="2" subject="null"' +
-       'body="In waverly? " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0"' +
-       'readable_date="2013-11-01 6:15:46 PM" contact_name="Alex" />' +
-  '<sms protocol="0" address="+10000000054" date="1383344334491" type="1" subject="null"' +
-       'body="Heading in 5" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0"' +
-       'readable_date="2013-11-01 6:18:54 PM" contact_name="Alex" />' +
-'</smses>'
+    var testXml = '<?xml version="1.0" encoding="utf-8"?><smses count="983"><sms protocol="0" address="+10000000012" date="1383084883788" type="1" subject="null" body="Still at work?" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:14:43 PM" contact_name="Kevin" /><sms protocol="0" address="+10000000012" date="1383085269741" type="2" subject="null" body="Nah,  work is for chumps! " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:21:09 PM" contact_name="Kevin" /> <sms protocol="0" address="+10000000054" date="1383344146838" type="2" subject="null" body="In waverly? " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:15:46 PM" contact_name="Alex" /> <sms protocol="0" address="+10000000054" date="1383344334491" type="1" subject="null" body="Heading in 5" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:18:54 PM" contact_name="Alex" /></smses>';
+    var xmlDoc = jQuery.parseXML(testXml);
+    if (xmlDoc) {
+        document.write(xmlDoc.documentElement.nodeName);
+        $xml = $( xmlDoc )
+        var listsms = $xml.find( "sms" );
+        var names = [];
+        for (i = 0; i < listsms.length; i++) { 
+            $sms = $( listsms[i] )
+            names.push($sms.attr("contact_name"));
+        }
+        names = jQuery.unique( names ); 
+        $( "#names" ).autocomplete({
+            source: names
+        });
+    }
+    // Placeholder
     $( "#projects" ).accordion();
 </script>
  
