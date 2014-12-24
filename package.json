@@ -18,6 +18,6 @@
   "homepage": "https://github.com/nathanrosspowell/sms-viewer",
   "devDependencies": {
     "grunt": "^0.4.5",
-    "grunt-gh-pages": "^0.9.1",
+    "grunt-gh-pages": "^0.9.1"
   }
 }
