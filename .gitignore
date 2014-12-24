@@ -28,6 +28,9 @@ bower_components
 # Users Environment Variables
 .lock-wscript
 
-
 # Vim swap files
 *.swp
+
+#
+build
+temp
