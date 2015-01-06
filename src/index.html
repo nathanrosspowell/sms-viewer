@@ -8,18 +8,27 @@
 </head>
 <body>
  
-<div class="ui-widget">
-  <label for="names">Names: </label>
-  <input id="names">
-</div>
 
 <div id="projects">
-    <h3>jQuery Core</h3>
-    <p>jQuery is a fast, small, and feature-rich JavaScript library...</p>
-    <h3>jQuery UI</h3>
-    <p>jQuery UI is a curated set of user interface interactions...</p>
-    <h3>jQuery Mobile</h3>
-    <p>jQuery Mobile is a HTML5-based user interface system...</p>
+    <h3>Filter Names</h3>
+    <div>
+        <div class="ui-widget">
+            <label for="names">Names: </label>
+            <input id="names">
+        </div>
+    </div>
+    <h3>Filter Dates</h3>
+    <div>
+        <p>From: <input type="text" id="datepicker-from"></p>
+        <p>Until: <input type="text" id="datepicker-until"></p>
+    </div>
+    <h3>Filter Words</h3>
+    <div>
+        <div class="ui-widget">
+            <label for="words">Words: </label>
+            <input id="words">
+        </div>
+    </div>
 </div>
  
 <script src="../bower_components/jquery/dist/jquery.min.js"></script>
@@ -31,6 +40,7 @@
         document.write(xmlDoc.documentElement.nodeName);
         $xml = $( xmlDoc )
         var listsms = $xml.find( "sms" );
+        // Names
         var names = [];
         for (i = 0; i < listsms.length; i++) { 
             $sms = $( listsms[i] )
@@ -40,9 +50,24 @@
         $( "#names" ).autocomplete({
             source: names
         });
+        // Words
+        var words = [];
+        for (i = 0; i < listsms.length; i++) { 
+            $sms = $( listsms[i] )
+            var splits = $sms.attr("body").split(" ");
+            for (j = 0; j < splits.length; j++) { 
+                words.push( splits[j] );
+            }
+        }
+        words = jQuery.unique( words ); 
+        $( "#words" ).autocomplete({
+            source: words
+        });
     }
     // Placeholder
     $( "#projects" ).accordion();
+    $( "#datepicker-from" ).datepicker();
+    $( "#datepicker-until" ).datepicker();
 </script>
  
 </body>
