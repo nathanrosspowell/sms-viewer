@@ -123,12 +123,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-gh-pages');
 
   grunt.registerTask('build', [
+      'clean',
       'replace', 
       'copy'
   ]);
 
   grunt.registerTask('deploy', [
-      'clean',
       'default', 
       'gh-pages' 
   ]);
