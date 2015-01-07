@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>jQuery Projects</title>
+    <title>SMS Viewer | NRP</title>
     <link rel="stylesheet" href="jquery-ui/themes/dark-hive/jquery-ui.min.css">
     <link rel="stylesheet" href="css/theme.css">
 </head>
 <body>
- 
 
 <div id="projects">
     <h3>Filter Names</h3>
@@ -30,6 +29,14 @@
         </div>
     </div>
 </div>
+
+<div class="ui-widget">
+    <h1 class="ui-widget-header ui-corner-all">SMS</h1>
+    <div  class="ui-widget-content ui-corner-all">
+        <ul id="sortable-sms">
+        </ul>
+    </div>
+</div>
  
 <script src="jquery/dist/jquery.min.js"></script>
 <script src="jquery-ui/jquery-ui.min.js"></script>
@@ -37,7 +44,6 @@
     var testXml = '<?xml version="1.0" encoding="utf-8"?><smses count="983"><sms protocol="0" address="+10000000012" date="1383084883788" type="1" subject="null" body="Still at work?" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:14:43 PM" contact_name="Kevin" /><sms protocol="0" address="+10000000012" date="1383085269741" type="2" subject="null" body="Nah,  work is for chumps! " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:21:09 PM" contact_name="Kevin" /> <sms protocol="0" address="+10000000054" date="1383344146838" type="2" subject="null" body="In waverly? " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:15:46 PM" contact_name="Alex" /> <sms protocol="0" address="+10000000054" date="1383344334491" type="1" subject="null" body="Heading in 5 mins :)" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:18:54 PM" contact_name="Alex" /></smses>';
     var xmlDoc = jQuery.parseXML(testXml);
     if (xmlDoc) {
-        document.write(xmlDoc.documentElement.nodeName);
         $xml = $( xmlDoc )
         var listsms = $xml.find( "sms" );
         // Names
@@ -62,6 +68,27 @@
         words = jQuery.unique( words ); 
         $( "#words" ).autocomplete({
             source: words
+        });
+        // SMS
+        var cList = $('#sortable-sms')
+        $.each(listsms, function(i)
+        {
+            $sms = $( this )
+            var li = $('<li/>')
+                .addClass('ui-state-default')
+                .appendTo(cList);
+            var name = $('<h4/>')
+                .text($sms.attr("contact_name") + ": " + $sms.attr("readable_date"))
+                .appendTo(li);
+            var body = $('<p/>')
+                .text($sms.attr("body"))
+                .appendTo(li);
+        });
+        $(function() {
+            $( "#sortable-sms" ).sortable({
+                placeholder: "ui-state-highlight"
+            });
+            $( "#sortable-sms" ).disableSelection();
         });
     }
     // Placeholder
