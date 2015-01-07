@@ -9,8 +9,4 @@ body {
     width: 60%;
 }
 
-#sortable-sms li { margin: 0 5px 5px 5px; padding: 5px; font-size: 1.2em; height: 1.5em; }
-
-html>body #sortable-sms li { height: 1.5em; line-height: 1.2em; }
-
-.ui-state-highlight { height: 1.5em; line-height: 1.2em; }
+#sortable-sms > li { margin: 0; padding: 0px, 5px, 0px, 5px; font-size: 0.8em; height: 6.0em; }

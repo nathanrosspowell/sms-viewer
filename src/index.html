@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>jQuery Projects</title>
+    <title>SMS Viewer | NRP</title>
     <link rel="stylesheet" href="../bower_components/jquery-ui/themes/dark-hive/jquery-ui.min.css">
     <link rel="stylesheet" href="css/theme.css">
 </head>
@@ -76,10 +76,11 @@
             $sms = $( this )
             var li = $('<li/>')
                 .addClass('ui-state-default')
-                .attr('role', 'menuitem')
                 .appendTo(cList);
-            var aaa = $('<a/>')
-                .addClass('ui-state')
+            var name = $('<h4/>')
+                .text($sms.attr("contact_name") + ": " + $sms.attr("readable_date"))
+                .appendTo(li);
+            var body = $('<p/>')
                 .text($sms.attr("body"))
                 .appendTo(li);
         });
