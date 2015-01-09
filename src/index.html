@@ -10,7 +10,8 @@
 
 <body>
 
-<!-- Controls ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<!-- Controls -->
 <div class="ui-widget">
     <h1 class="ui-widget-header ui-corner-all">Controls</h1>
     <div class="ui-widget-content ui-corner-all">
@@ -18,13 +19,14 @@
     </div>
 </div>
 
-<!-- Filters ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<!-- Filters -->
 <div id="projects">
     <h3>Filter Names</h3>
     <div>
         <div class="ui-widget">
             <label for="names">Names: </label>
-            <input id="names">
+            <input class="filter-name">
         </div>
     </div>
     <h3>Filter Dates</h3>
@@ -36,12 +38,13 @@
     <div>
         <div class="ui-widget">
             <label for="words">Words: </label>
-            <input id="words">
+            <input class="filter-word">
         </div>
     </div>
 </div>
 
-<!-- SMS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<!-- SMS -->
 <div class="ui-widget">
     <h1 class="ui-widget-header ui-corner-all">SMS</h1>
     <div class="ui-widget-content ui-corner-all">
@@ -52,14 +55,20 @@
  
 <script src="../bower_components/jquery/dist/jquery.min.js"></script>
 <script src="../bower_components/jquery-ui/jquery-ui.min.js"></script>
-<!-- Scripts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<!-- Scripts -->
 <script>
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Globals.
+    var names = [];
+    var words = [];
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Pass in a JSON doc and fill out all of the data.
     function GetDataFromJson(xmlDoc) {
         $xml = $( xmlDoc );
         var listsms = $xml.find( "sms" );
         // Names
-        var names = [];
         $.each(listsms, function(i) {
             $sms = $( this );
             names.push($sms.attr("contact_name"));
@@ -69,7 +78,6 @@
             source: names
         });
         // Words
-        var words = [];
         $.each(listsms, function(i) {
             $sms = $( this );
             var splits = $sms.attr("body").split(" ");
@@ -84,6 +92,7 @@
         FilterSms(xmlDoc);
     }
 
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Filter the list before displaying.
     function FilterSms(xmlDoc) {
         $xml = $(xmlDoc);
@@ -93,24 +102,81 @@
         smsList.empty(); 
         $.each(listsms, function(i) {
             $sms = $( this );
-            var li = $('<li/>')
-                .addClass('ui-state-default')
-                .appendTo(smsList);
-            var name = $('<h4/>')
-                .text($sms.attr("contact_name") + ": " + $sms.attr("readable_date"))
-                .appendTo(li);
-            var body = $('<p/>')
-                .text($sms.attr("body"))
-                .appendTo(li);
+            // SMS attributes.
+            var smsName = $sms.attr("contact_name");
+            var smsBody = $sms.attr("body");
+            // Check if it can be added.
+            var add = true;
+            // Name filter.
+            console.log( "-------------------- " );
+            $filterNames = $('input.filter-name[value!=""]').filter(function () {
+                return this.value.length > 0
+            });
+            if ( $filterNames.length > 0 ) {
+                console.log( "filterNames " + $filterNames.length );
+                add = false;
+                $filterNames.each(function() {
+                    var name = $(this).val();
+                    console.log( "name " + name + " = '" + smsName + "'");
+                    if ( name === smsName ) {
+                        add = true;
+                        console.log( "add");
+                    }
+                });
+            }
+            // Date filter.
+            // Todo....
+            // Word filter.
+            $filterWords = $('input.filter-word[value!=""]').filter(function () {
+                return this.value.length > 0
+            });
+            if ( $filterWords.length > 0) {
+                console.log( "filterWords " + $filterWords.length );
+                add = false;
+                $filterWords.each(function() {
+                    var word = $(this).val();
+                    console.log( "word '" + word + "' = '" + smsBody + "'");
+                    if ( smsBody.indexOf(word) > -1) {
+                        add = true;
+                        console.log( "add");
+                    }
+                });
+            }
+            // Add a list item.
+            if ( add ) {
+                var li = $('<li/>')
+                    .addClass('ui-state-default')
+                    .appendTo(smsList);
+                var name = $('<h4/>')
+                    .text(smsName + ": " + $sms.attr("readable_date"))
+                    .appendTo(li);
+                var body = $('<p/>')
+                    .text($sms.attr("body"))
+                    .appendTo(li);
+            }
         });
     }
 
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Test xml. 
     var testXml = '<?xml version="1.0" encoding="utf-8"?><smses count="983"><sms protocol="0" address="+10000000012" date="1383084883788" type="1" subject="null" body="Still at work?" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:14:43 PM" contact_name="Kevin" /><sms protocol="0" address="+10000000012" date="1383085269741" type="2" subject="null" body="Nah,  work is for chumps! " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:21:09 PM" contact_name="Kevin" /> <sms protocol="0" address="+10000000054" date="1383344146838" type="2" subject="null" body="In waverly? " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:15:46 PM" contact_name="Alex" /> <sms protocol="0" address="+10000000054" date="1383344334491" type="1" subject="null" body="Heading in 5 mins :)" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:18:54 PM" contact_name="Alex" /></smses>';
     var xmlDoc = jQuery.parseXML(testXml);
     if (xmlDoc) {
         GetDataFromJson(xmlDoc);
     }
-    // jQuery UI setup
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // jQuery UI setup.
+    $("input.filter-name").each(function() {
+        $(this).autocomplete({
+            source: names
+        });
+    });
+    $("input.filter-word").each(function() {
+        $(this).autocomplete({
+            source: words
+        });
+    });
     $( "#projects" ).accordion();
     $( "#datepicker-from" ).datepicker();
     $( "#datepicker-until" ).datepicker();
@@ -119,8 +185,10 @@
     });
     $( "#sortable-sms" ).disableSelection();
 
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Update setup.
     $("#submit").click(function () {
-        GetDataFromJson(xmlDoc);
+        FilterSms(xmlDoc);
     });
 </script>
  
