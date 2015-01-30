@@ -10,3 +10,12 @@ body {
 }
 
 #sortable-sms > li { margin: 0; padding: 0px, 5px, 0px, 5px; font-size: 0.8em; height: 6.0em; }
+
+
+#drop_zone {
+    border: 2px dashed #bbb;
+    border-radius: 5px;
+    padding: 25px;
+    text-align: center;
+    color: #bbb;
+}

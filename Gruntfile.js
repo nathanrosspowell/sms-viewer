@@ -14,7 +14,7 @@ module.exports = function(grunt) {
 
     watch: {
       build: {
-        files: ['<%= config.src %>/**/*.{html,css}'],
+        files: ['<%= config.src %>/**/*.{html,css,js}'],
         tasks: ['build']
       },
       livereload: {
