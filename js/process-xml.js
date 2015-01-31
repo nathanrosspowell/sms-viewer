@@ -10,6 +10,7 @@ importScripts('../underscore/underscore-min.js');
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Pass in a JSON doc and fill out all of the data.
 function GetDataFromJson(xmlDoc) {
+    console.log(JSON.stringify(xmlDoc));
     var names = [];
     var words = [];
     var $xml = $( xmlDoc );
@@ -139,7 +140,9 @@ function ChangeXml(xmlDoc) {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function StringToXml(xmlString){
-    return xml2json(xmlString, "");
+    var parser = new marknote.Parser();
+    var doc = parser.parse(str);
+    return xml2json(doc, "");
 }
 
 
