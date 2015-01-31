@@ -6,7 +6,7 @@
 	"use strict";
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //  Globals.
-    var worker = undefined;
+    var xmlWorker = undefined;
     var reader = undefined;
     var progress = document.querySelector('.percent');
 
@@ -119,9 +119,9 @@
     
     if(typeof(Worker) !== "undefined") {
         if(typeof(w) == "undefined") {
-            worker = new Worker("process-xml.js");
-            worker.onmessage = HandleWorkerUpdate;
-            worker.postMessage(xmlDoc);
+            xmlWorker = new Worker("js/process-xml.js");
+            xmlWorker.onmessage = HandleWorkerUpdate;
+            xmlWorker.postMessage(xmlDoc);
         }
     } else {
         if (xmlDoc) {
