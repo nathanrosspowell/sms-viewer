@@ -80,7 +80,7 @@
     }
 
     function HandleWorkerUpdate(event) {
-
+        alert( event.data );
     }
 
 
