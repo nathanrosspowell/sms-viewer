@@ -15,14 +15,17 @@ function GetDataFromJson(jsonDoc) {
     var names = [];
     var words = [];
     var listsms = jsonDoc["smses"]["sms"];
+    log( "jsonDoc: " + JSON.stringify(jsonDoc) );
+    log( "listsms: " + JSON.stringify(listsms) );
     // Names
     _.each(listsms, function(sms) {
-        names.push(sms["@contact_name"]);
+        log( "sms: " + JSON.stringify(sms) );
+        names.push(sms["_contact_name"]);
     });
     names = _.unique( names ); 
     // Words
     _.each(listsms, function(sms) {
-        var splits = sms["@body"].split(" ");
+        var splits = sms["_body"].split(" ");
         _.each(splits, function(split) {
             words.push( split );
         });
@@ -41,28 +44,28 @@ function FilterSms(jsonDoc, nameFilters, wordFilters) {
     self.postMessage({ "cmd": 'ClearSms'});
     var listsms = jsonDoc["smses"]["sms"];
     // Make the heavy work time out in a loop.
-    var jsonElements = _(jsonDoc).find('Object');
     var length = listsms.length;
+    log( "FilterSms leng:" + length + " names:"+ nameFilters + ", words:" + wordFilters);
     var index = 0;
     for (; index < length; index++) {
         var sms =  listsms[index];
+        log( "SMS: " + sms );
         // SMS attributes.
-        var smsName = sms["@contact_name"];
-        var smsBody = sms["@body"];
+        var smsName = sms["_contact_name"];
+        var smsBody = sms["_body"];
         // Check if it can be added.
         var add = true;
         // Name filter.
-        log( smsName + " ... " + add.toString() + " : " + nameFilters );
         if ( nameFilters.length > 0 ) {
+            log( "name filter false ");
             add = false;
             _.each( nameFilters, function(name) {
-                log( name + "   " + smsName );
+                log( "name: " + name );
                 if ( name === smsName ) {
                     add = true;
                 }
             });
         }
-        log( smsName + " ... " + add.toString() + " : " + nameFilters );
         if ( add ){
 
             // Date filter.
@@ -70,6 +73,7 @@ function FilterSms(jsonDoc, nameFilters, wordFilters) {
             
             // Word filter.
             if ( wordFilters.length > 0) {
+                log( "word filter false ");
                 add = false;
                 _.each( wordFilters, function(word) {
                     if ( smsBody.indexOf(word) > -1) {
@@ -81,8 +85,8 @@ function FilterSms(jsonDoc, nameFilters, wordFilters) {
             if ( add ) {
                 self.postMessage({
                     "cmd": 'AddSms', 
-                    "header" : smsName + ": " + sms["@readable_date"],
-                    "body" :  sms["@body"]
+                    "header" : smsName + ": " + sms["_readable_date"],
+                    "body" :  sms["_body"]
                 });
             }
         }
