@@ -121,7 +121,7 @@
         if(typeof(w) == "undefined") {
             xmlWorker = new Worker("js/process-xml.js");
             xmlWorker.onmessage = HandleWorkerUpdate;
-            xmlWorker.postMessage(xmlDoc);
+            xmlWorker.postMessage({ "cmd" : 'start', "msg" : "ello urld."});
         }
     } else {
         if (xmlDoc) {
