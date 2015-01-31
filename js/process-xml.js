@@ -134,7 +134,10 @@ self.addEventListener('message', function(event) {
   var data = event.data;
   switch (data.cmd) {
     case 'start':
-      self.postMessage({ "cmd": 'alert', "msg" : 'WORKER STARTED: ' + data.msg);
+      self.postMessage({ "cmd": 'alert', "msg" : 'WORKER STARTED: ' + data.msg});
+      break;
+    case 'xml':
+      ChangeXml( data.xml );
       break;
     case 'stop':
       self.postMessage('WORKER STOPPED: ' + data.msg +

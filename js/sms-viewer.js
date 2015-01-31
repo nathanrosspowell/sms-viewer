@@ -132,6 +132,7 @@
             xmlWorker = new Worker("js/process-xml.js");
             xmlWorker.onmessage = HandleWorkerUpdate;
             xmlWorker.postMessage({ "cmd" : 'start', "msg" : "ello urld."});
+            xmlWorker.postMessage({ "cmd" : 'xml', "xml" : xmlDoc});
         }
     } else {
         if (xmlDoc) {
