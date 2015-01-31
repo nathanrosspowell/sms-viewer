@@ -1,4 +1,4 @@
-// process-json.js
+// process-sms-data.js
 "use strict";
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -15,11 +15,8 @@ function GetDataFromJson(jsonDoc) {
     var names = [];
     var words = [];
     var listsms = jsonDoc["smses"]["sms"];
-    log( "jsonDoc: " + JSON.stringify(jsonDoc) );
-    log( "listsms: " + JSON.stringify(listsms) );
     // Names
     _.each(listsms, function(sms) {
-        log( "sms: " + JSON.stringify(sms) );
         names.push(sms["_contact_name"]);
     });
     names = _.unique( names ); 
@@ -31,7 +28,11 @@ function GetDataFromJson(jsonDoc) {
         });
     });
     words = _.unique( words ); 
-    self.postMessage({"cmd" : "SetupFilters", "names" : names , "words" : words });
+    self.postMessage({
+        "cmd" : "SetupFilters",
+        "names" : names , 
+        "words" : words 
+    });
     return {
         "names" : names, 
         "words" : words
@@ -45,11 +46,9 @@ function FilterSms(jsonDoc, nameFilters, wordFilters) {
     var listsms = jsonDoc["smses"]["sms"];
     // Make the heavy work time out in a loop.
     var length = listsms.length;
-    log( "FilterSms leng:" + length + " names:"+ nameFilters + ", words:" + wordFilters);
     var index = 0;
     for (; index < length; index++) {
         var sms =  listsms[index];
-        log( "SMS: " + sms );
         // SMS attributes.
         var smsName = sms["_contact_name"];
         var smsBody = sms["_body"];
@@ -57,10 +56,8 @@ function FilterSms(jsonDoc, nameFilters, wordFilters) {
         var add = true;
         // Name filter.
         if ( nameFilters.length > 0 ) {
-            log( "name filter false ");
             add = false;
             _.each( nameFilters, function(name) {
-                log( "name: " + name );
                 if ( name === smsName ) {
                     add = true;
                 }
@@ -73,7 +70,6 @@ function FilterSms(jsonDoc, nameFilters, wordFilters) {
             
             // Word filter.
             if ( wordFilters.length > 0) {
-                log( "word filter false ");
                 add = false;
                 _.each( wordFilters, function(word) {
                     if ( smsBody.indexOf(word) > -1) {
@@ -86,10 +82,12 @@ function FilterSms(jsonDoc, nameFilters, wordFilters) {
                 self.postMessage({
                     "cmd": 'AddSms', 
                     "header" : smsName + ": " + sms["_readable_date"],
-                    "body" :  sms["_body"]
+                    "body" :  sms["_body"],
+                    "recieved" : sms["_recieved"] == "1"
                 });
             }
         }
+        self.postMessage({"cmd" : "progress", "loaded" : index + 1, "total" : length});
     }
 }
 

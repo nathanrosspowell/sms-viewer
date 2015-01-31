@@ -23,15 +23,11 @@
                 alert('File read cancelled');
             };
             reader.onloadstart = function(e) {
-                document.getElementById('progress_bar').className = 'loading';
             };
             reader.onload = function(e) {
-                progress.style.width = '100%';
-                progress.textContent = '100%';
+                progressbar.progressbar( "value", 100  );
                 var rawData = reader.result;
-                console.log( "ERGEARG" );
                 NewSmsData(rawData);
-                console.log( "WOOP" );
             }
             reader.readAsText(f);
         }
@@ -44,6 +40,7 @@
         evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
     }
 
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function updateProgress(evt) {
         // evt is an ProgressEvent.
         if (evt.lengthComputable) {
@@ -52,16 +49,19 @@
             if (percentLoaded < 100) {
                 progress.style.width = percentLoaded + '%';
                 progress.textContent = percentLoaded + '%';
+                progressbar.progressbar( "value", percentLoaded  );
             }
         }
     }
 
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function abortRead() {
         if ( reader !== undefined ) {
             reader.abort();
         }
     }
 
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function errorHandler(evt) {
         switch(evt.target.error.code) {
         case evt.target.error.NOT_FOUND_ERR:
@@ -77,6 +77,7 @@
         };
     }
 
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function HandleWorkerUpdate(event) {
         var data = event.data;
         console.log( "HandleWorkerUpdate: " + JSON.stringify(data));
@@ -99,6 +100,10 @@
                     .text(data.body)
                     .appendTo(li);
                 break;
+            case 'progress':
+                var percentLoaded = Math.round((data.loaded / data.total) * 100);
+                progressbar.progressbar( "value", percentLoaded  );
+                break;
             default:
                 break;
         }
@@ -119,6 +124,7 @@
         });
     }
 
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function ClearSms() { 
         var smsList = $('#sortable-sms');
         smsList.empty(); 
@@ -132,6 +138,7 @@
         });
     }
 
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function UpdateFilters() {
         function MakeArray( x ) {
             if( x === 'undefined' || x === '' || x === "" ){
@@ -158,10 +165,8 @@
                 xmlWorker = new Worker("js/process-sms-data.js");
                 xmlWorker.onmessage = HandleWorkerUpdate;
             }
-            console.log("11111");
             var x2js = new X2JS(); 
             var jsonData = x2js.xml_str2json(xmlString);
-            console.log("4");
             xmlWorker.postMessage({ "cmd" : 'json', "json" : jsonData});
         } else {
             var xmlDoc = jQuery.parseXML(xmlString);
@@ -172,7 +177,7 @@
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Set up the page
+    // Set up the page.
     // jQuery UI setup.
     $( "#projects" ).accordion();
     $( "#datepicker-from" ).datepicker();
@@ -182,8 +187,8 @@
     });
     $( "#sortable-sms" ).disableSelection();
     // Loading bars.
-    var progressbar = $( "#progressbar" ),
-        progressLabel = $( ".progress-label" );
+    var progressbar = $( "#progressbar" );
+    var progressLabel = $( ".progress-label" );
     progressbar.progressbar({
         value: false,
         change: function() {
