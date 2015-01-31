@@ -1,20 +1,20 @@
-// process-xml.js
+// process-json.js
 "use strict";
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // User underscore.
-importScripts("xml2json.js");
+importScripts("json2json.js");
 importScripts("marknote.js");
 importScripts('../underscore/underscore-min.js');
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Pass in a JSON doc and fill out all of the data.
-function GetDataFromJson(xmlDoc) {
-    console.log(JSON.stringify(xmlDoc));
+function GetDataFromJson(jsonDoc) {
+    console.log(JSON.stringify(jsonDoc));
     var names = [];
     var words = [];
-    var $xml = $( xmlDoc );
-    var listsms = $xml.find( "sms" );
+    var $json = $( jsonDoc );
+    var listsms = $json.find( "sms" );
     // Names
     $.each(listsms, function(i) {
         var $sms = $( this );
@@ -36,7 +36,7 @@ function GetDataFromJson(xmlDoc) {
     $( "#words" ).autocomplete({
         source: words
     });
-    FilterSms(xmlDoc);
+    FilterSms(jsonDoc);
     return {
         "names" : names, 
         "words" : words
@@ -44,30 +44,15 @@ function GetDataFromJson(xmlDoc) {
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Set up filters.
-function SetupFilters(names, words) {
-    $("input.filter-name").each(function() {
-        $(this).autocomplete({
-            source: names
-        });
-    });
-    $("input.filter-word").each(function() {
-        $(this).autocomplete({
-            source: words
-        });
-    });
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Filter the list before displaying.
-function FilterSms(xmlDoc) {
+function FilterSms(jsonDoc) {
     self.postMessage({ "cmd": 'alert', "msg" : 'Filtering' });
-    var $xml = $(xmlDoc);
-    var listsms = $xml.find( "sms" );
+    var $json = $(jsonDoc);
+    var listsms = $json.find( "sms" );
     var smsList = $('#sortable-sms');
     smsList.empty(); 
     // Make the heavy work time out in a loop.
-    var xmlElements = $(xmlDoc).find('Object');
+    var jsonElements = $(jsonDoc).find('Object');
     var length = listsms.length;
     var index = 0;
     for (; index < length; index++) {
@@ -129,29 +114,21 @@ function FilterSms(xmlDoc) {
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-function ChangeXml(xmlDoc) {
-    var details = GetDataFromJson(xmlDoc);
+function ChangeData(jsonDoc) {
+    var details = GetDataFromJson(jsonDoc);
     SetupFilters(details["names"], details["words"]); 
-    FilterSms(xmlDoc);
+    FilterSms(jsonDoc);
     $(".update-sms").click(function () {
-        ChangeXml(xmlDoc);
+        ChangeData(jsonDoc);
     });
 }
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-function StringToXml(xmlString){
-    var parser = new marknote.Parser();
-    var doc = parser.parse(xmlString);
-    return xml2json(doc, "");
-}
-
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 self.addEventListener('message', function(event) {
   var data = event.data;
   switch (data.cmd) {
-    case 'xml':
-      ChangeXml(StringToXml(data.xml));
+    case 'json':
+      ChangeData(data.json);
       break;
     case 'stop':
       self.postMessage('WORKER STOPPED: ' + data.msg + '. (buttons will no longer work)');
@@ -160,4 +137,4 @@ self.addEventListener('message', function(event) {
     default:
       self.postMessage('Unknown command: ' + data.msg);
   };
-}, false);
+}, false)/
