@@ -5,36 +5,33 @@
 // User underscore.
 importScripts('../underscore/underscore-min.js');
 
+function log(msg) {
+    self.postMessage({"cmd": 'log', "msg" : msg});
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Pass in a JSON doc and fill out all of the data.
 function GetDataFromJson(jsonDoc) {
-    console.log(JSON.stringify(jsonDoc));
     var names = [];
     var words = [];
-    var $json = $( jsonDoc );
-    var listsms = $json.find( "sms" );
+    var listsms = jsonDoc["smses"]["sms"];
+    log( "jsonDoc: " + JSON.stringify(jsonDoc) );
+    log( "listsms: " + JSON.stringify(listsms) );
     // Names
-    $.each(listsms, function(i) {
-        var $sms = $( this );
-        names.push($sms.attr("contact_name"));
+    _.each(listsms, function(sms) {
+        log( "sms: " + JSON.stringify(sms) );
+        names.push(sms["_contact_name"]);
     });
-    names = jQuery.unique( names ); 
-    $( "#names" ).autocomplete({
-        source: names
-    });
+    names = _.unique( names ); 
     // Words
-    $.each(listsms, function(i) {
-        var $sms = $( this );
-        var splits = $sms.attr("body").split(" ");
-        $.each(splits, function(j) {
-            words.push( splits[j] );
+    _.each(listsms, function(sms) {
+        var splits = sms["_body"].split(" ");
+        _.each(splits, function(split) {
+            words.push( split );
         });
     });
-    words = jQuery.unique( words ); 
-    $( "#words" ).autocomplete({
-        source: words
-    });
-    FilterSms(jsonDoc);
+    words = _.unique( words ); 
+    self.postMessage({"cmd" : "SetupFilters", "names" : names , "words" : words });
     return {
         "names" : names, 
         "words" : words
@@ -43,69 +40,54 @@ function GetDataFromJson(jsonDoc) {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Filter the list before displaying.
-function FilterSms(jsonDoc) {
-    self.postMessage({ "cmd": 'alert', "msg" : 'Filtering' });
-    var $json = $(jsonDoc);
-    var listsms = $json.find( "sms" );
-    var smsList = $('#sortable-sms');
-    smsList.empty(); 
+function FilterSms(jsonDoc, nameFilters, wordFilters) {
+    self.postMessage({ "cmd": 'ClearSms'});
+    var listsms = jsonDoc["smses"]["sms"];
     // Make the heavy work time out in a loop.
-    var jsonElements = $(jsonDoc).find('Object');
     var length = listsms.length;
+    log( "FilterSms leng:" + length + " names:"+ nameFilters + ", words:" + wordFilters);
     var index = 0;
     for (; index < length; index++) {
-        var $sms = $( listsms[index] );
+        var sms =  listsms[index];
+        log( "SMS: " + sms );
         // SMS attributes.
-        var smsName = $sms.attr("contact_name");
-        var smsBody = $sms.attr("body");
+        var smsName = sms["_contact_name"];
+        var smsBody = sms["_body"];
         // Check if it can be added.
         var add = true;
         // Name filter.
-        var $filterNames = $('input.filter-name[value!=""]').filter(function () {
-            return this.value.length > 0
-        });
-        if ( $filterNames.length > 0 ) {
-            console.log( "filterNames " + $filterNames.length );
+        if ( nameFilters.length > 0 ) {
+            log( "name filter false ");
             add = false;
-            $filterNames.each(function() {
-                var name = $(this).val();
-                console.log( "name " + name + " = '" + smsName + "'");
+            _.each( nameFilters, function(name) {
+                log( "name: " + name );
                 if ( name === smsName ) {
                     add = true;
-                    console.log( "add");
                 }
             });
         }
         if ( add ){
+
             // Date filter.
             // Todo....
+            
             // Word filter.
-            var $filterWords = $('input.filter-word[value!=""]').filter(function () {
-                return this.value.length > 0
-            });
-            if ( $filterWords.length > 0) {
-                console.log( "filterWords " + $filterWords.length );
+            if ( wordFilters.length > 0) {
+                log( "word filter false ");
                 add = false;
-                $filterWords.each(function() {
-                    var word = $(this).val();
-                    console.log( "word '" + word + "' = '" + smsBody + "'");
+                _.each( wordFilters, function(word) {
                     if ( smsBody.indexOf(word) > -1) {
                         add = true;
-                        console.log( "add");
                     }
                 });
             }
             // Add a list item.
             if ( add ) {
-                var li = $('<li/>')
-                    .addClass('ui-state-default')
-                    .appendTo(smsList);
-                var name = $('<h4/>')
-                    .text(smsName + ": " + $sms.attr("readable_date"))
-                    .appendTo(li);
-                var body = $('<p/>')
-                    .text($sms.attr("body"))
-                    .appendTo(li);
+                self.postMessage({
+                    "cmd": 'AddSms', 
+                    "header" : smsName + ": " + sms["_readable_date"],
+                    "body" :  sms["_body"]
+                });
             }
         }
     }
@@ -113,26 +95,26 @@ function FilterSms(jsonDoc) {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function ChangeData(jsonDoc) {
-    var details = GetDataFromJson(jsonDoc);
-    SetupFilters(details["names"], details["words"]); 
-    FilterSms(jsonDoc);
-    $(".update-sms").click(function () {
-        ChangeData(jsonDoc);
-    });
+    GetDataFromJson(jsonDoc);
+    FilterSms(jsonDoc, [], []);
+    self.jsonDoc = jsonDoc;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 self.addEventListener('message', function(event) {
-  var data = event.data;
-  switch (data.cmd) {
-    case 'json':
-      ChangeData(data.json);
-      break;
-    case 'stop':
-      self.postMessage('WORKER STOPPED: ' + data.msg + '. (buttons will no longer work)');
-      self.close(); // Terminates the worker.
-      break;
-    default:
-      self.postMessage('Unknown command: ' + data.msg);
-  };
+    var data = event.data;
+    switch (data.cmd) {
+        case 'json':
+            ChangeData(data.json);
+            break;
+        case 'filter':
+            FilterSms(self.jsonDoc, data.nameFilters, data.wordFilters);
+            break;
+        case 'stop':
+            self.postMessage('WORKER STOPPED: ' + data.msg + '. (buttons will no longer work)');
+            self.close(); // Terminates the worker.
+            break;
+        default:
+            self.postMessage('Unknown command: ' + data.msg);
+    };
 }, false)
