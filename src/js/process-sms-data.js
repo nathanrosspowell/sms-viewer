@@ -1,4 +1,4 @@
-// process-json.js
+// process-sms-data.js
 "use strict";
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -28,7 +28,11 @@ function GetDataFromJson(jsonDoc) {
         });
     });
     words = _.unique( words ); 
-    self.postMessage({"cmd" : "SetupFilters", "names" : names , "words" : words });
+    self.postMessage({
+        "cmd" : "SetupFilters",
+        "names" : names , 
+        "words" : words 
+    });
     return {
         "names" : names, 
         "words" : words
