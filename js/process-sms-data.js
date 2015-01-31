@@ -137,4 +137,4 @@ self.addEventListener('message', function(event) {
     default:
       self.postMessage('Unknown command: ' + data.msg);
   };
-}, false)/
+}, false)
