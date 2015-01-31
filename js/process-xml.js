@@ -1,5 +1,12 @@
 // process-xml.js
 "use strict";
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// User underscore.
+importScripts("xml2json.js");
+importScripts("marknote.js");
+importScripts('../underscore/underscore-min.js');
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Pass in a JSON doc and fill out all of the data.
 function GetDataFromJson(xmlDoc) {
@@ -131,15 +138,20 @@ function ChangeXml(xmlDoc) {
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+function StringToXml(xmlString){
+    return xml2json(xmlString, "");
+}
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 self.addEventListener('message', function(event) {
   var data = event.data;
   switch (data.cmd) {
     case 'xml':
-      ChangeXml( data.xml );
+      ChangeXml(StringToXml(data.xml));
       break;
     case 'stop':
-      self.postMessage('WORKER STOPPED: ' + data.msg +
-                       '. (buttons will no longer work)');
+      self.postMessage('WORKER STOPPED: ' + data.msg + '. (buttons will no longer work)');
       self.close(); // Terminates the worker.
       break;
     default:
