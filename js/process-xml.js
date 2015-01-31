@@ -141,7 +141,7 @@ function ChangeXml(xmlDoc) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function StringToXml(xmlString){
     var parser = new marknote.Parser();
-    var doc = parser.parse(str);
+    var doc = parser.parse(xmlString);
     return xml2json(doc, "");
 }
 
