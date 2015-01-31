@@ -51,12 +51,8 @@ module.exports = function(grunt) {
         options: {
           patterns: [
             {
-              match: /src="..\/bower_components\//g,
-              replacement: 'src="',
-            },
-            {
-              match: /href="..\/bower_components\//g,
-              replacement: 'href="',
+              match: /..\/bower_components\//g,
+              replacement: '',
             }
           ]
         },

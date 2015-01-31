@@ -11,7 +11,6 @@ body {
 
 #sortable-sms > li { margin: 0; padding: 0px, 5px, 0px, 5px; font-size: 0.8em; height: 6.0em; }
 
-
 #drop_zone {
     border: 2px dashed #bbb;
     border-radius: 5px;
@@ -19,3 +18,23 @@ body {
     text-align: center;
     color: #bbb;
 }
+
+#progress_bar {
+    margin: 10px 0;
+    padding: 3px;
+    border: 1px solid #000;
+    font-size: 14px;
+    clear: both;
+    opacity: 0;
+    -moz-transition: opacity 1s linear;
+    -o-transition: opacity 1s linear;
+    -webkit-transition: opacity 1s linear;
+  }
+  #progress_bar.loading {
+    opacity: 1.0;
+  }
+  #progress_bar .percent {
+    background-color: #99ccff;
+    height: auto;
+    width: 0;
+  }

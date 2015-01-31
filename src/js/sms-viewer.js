@@ -1,39 +1,106 @@
+// sms-viewer.js
+//
+// Thanks go to:
+//     http://www.html5rocks.com/en/tutorials/file/dndfiles/ 
 (function(){
 	"use strict";
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Pass in a JSON doc and fill out all of the data.
-    function GetDataFromJson(xmlDoc) {
-        var names = [];
-        var words = [];
-        var $xml = $( xmlDoc );
-        var listsms = $xml.find( "sms" );
-        // Names
-        $.each(listsms, function(i) {
-            var $sms = $( this );
-            names.push($sms.attr("contact_name"));
-        });
-        names = jQuery.unique( names ); 
-        $( "#names" ).autocomplete({
-            source: names
-        });
-        // Words
-        $.each(listsms, function(i) {
-            var $sms = $( this );
-            var splits = $sms.attr("body").split(" ");
-            $.each(splits, function(j) {
-                words.push( splits[j] );
-            });
-        });
-        words = jQuery.unique( words ); 
-        $( "#words" ).autocomplete({
-            source: words
-        });
-        FilterSms(xmlDoc);
-        return {
-            "names" : names, 
-            "words" : words
+    //  Globals.
+    var xmlWorker = undefined;
+    var reader = undefined;
+    var progress = document.querySelector('.percent');
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    function HandleFileSelect(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        var files = evt.dataTransfer.files; // FileList object.
+        for (var i = 0, f; f = files[i]; i++) {
+            reader = new FileReader();
+            reader.onerror = errorHandler;
+            reader.onprogress = updateProgress;
+            reader.onabort = function(e) {
+                alert('File read cancelled');
+            };
+            reader.onloadstart = function(e) {
+                document.getElementById('progress_bar').className = 'loading';
+            };
+            reader.onload = function(e) {
+                progress.style.width = '100%';
+                progress.textContent = '100%';
+                var rawData = reader.result;
+                NewSmsData(rawData);
+            }
+            reader.readAsText(f);
+        }
+    }
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    function HandleDragOver(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+    }
+
+    function updateProgress(evt) {
+        // evt is an ProgressEvent.
+        if (evt.lengthComputable) {
+            var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
+            // Increase the progress bar length.
+            if (percentLoaded < 100) {
+                progress.style.width = percentLoaded + '%';
+                progress.textContent = percentLoaded + '%';
+            }
+        }
+    }
+
+    function abortRead() {
+        if ( reader !== undefined ) {
+            reader.abort();
+        }
+    }
+
+    function errorHandler(evt) {
+        switch(evt.target.error.code) {
+        case evt.target.error.NOT_FOUND_ERR:
+            alert('File Not Found!');
+            break;
+        case evt.target.error.NOT_READABLE_ERR:
+            alert('File is not readable');
+            break;
+        case evt.target.error.ABORT_ERR:
+            break; // noop
+        default:
+            alert('An error occurred reading this file.');
         };
     }
+
+    function HandleWorkerUpdate(event) {
+        var data = event.data;
+        console.log( "HandleWorkerUpdate: " + JSON.stringify(data));
+        switch (data.cmd) {
+            case 'SetupFilters':
+                SetupFilters( data.names, data.words );
+                break;
+            case 'ClearSms':
+                ClearSms();
+                break;
+            case 'AddSms':
+                var smsList = $('#sortable-sms');
+                var li = $('<li/>')
+                    .addClass('ui-state-default')
+                    .appendTo(smsList);
+                var name = $('<h4/>')
+                    .text(data.header)
+                    .appendTo(li);
+                var body = $('<p/>')
+                    .text(data.body)
+                    .appendTo(li);
+                break;
+            default:
+                break;
+        }
+    };
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Set up filters.
@@ -50,115 +117,41 @@
         });
     }
 
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Filter the list before displaying.
-    function FilterSms(xmlDoc) {
-        var $xml = $(xmlDoc);
-        var listsms = $xml.find( "sms" );
-        // SMS
+    function ClearSms() { 
         var smsList = $('#sortable-sms');
         smsList.empty(); 
-        $.each(listsms, function(i) {
-            var $sms = $( this );
-            // SMS attributes.
-            var smsName = $sms.attr("contact_name");
-            var smsBody = $sms.attr("body");
-            // Check if it can be added.
-            var add = true;
-            // Name filter.
-            var $filterNames = $('input.filter-name[value!=""]').filter(function () {
-                return this.value.length > 0
-            });
-            if ( $filterNames.length > 0 ) {
-                console.log( "filterNames " + $filterNames.length );
-                add = false;
-                $filterNames.each(function() {
-                    var name = $(this).val();
-                    console.log( "name " + name + " = '" + smsName + "'");
-                    if ( name === smsName ) {
-                        add = true;
-                        console.log( "add");
-                    }
-                });
-            }
-            if ( add ){
-                // Date filter.
-                // Todo....
-                // Word filter.
-                var $filterWords = $('input.filter-word[value!=""]').filter(function () {
-                    return this.value.length > 0
-                });
-                if ( $filterWords.length > 0) {
-                    console.log( "filterWords " + $filterWords.length );
-                    add = false;
-                    $filterWords.each(function() {
-                        var word = $(this).val();
-                        console.log( "word '" + word + "' = '" + smsBody + "'");
-                        if ( smsBody.indexOf(word) > -1) {
-                            add = true;
-                            console.log( "add");
-                        }
-                    });
-                }
-                // Add a list item.
-                if ( add ) {
-                    var li = $('<li/>')
-                        .addClass('ui-state-default')
-                        .appendTo(smsList);
-                    var name = $('<h4/>')
-                        .text(smsName + ": " + $sms.attr("readable_date"))
-                        .appendTo(li);
-                    var body = $('<p/>')
-                        .text($sms.attr("body"))
-                        .appendTo(li);
-                }
-            }
-        });
     }
 
-
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    function ChangeXml(xmlDoc) {
-        var details = GetDataFromJson(xmlDoc);
-        SetupFilters(details["names"], details["words"]); 
-        FilterSms(xmlDoc);
-        $(".update-sms").click(function () {
-            ChangeXml(xmlDoc);
+    function ChangeData(string) {
+        GetDataFromJson(jsonDoc);
+        FilterSms(jsonDoc);
+        _(".update-sms").click(function () {
         });
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    function HandleFileSelect(evt) {
-        evt.stopPropagation();
-        evt.preventDefault();
-        var files = evt.dataTransfer.files; // FileList object.
-        for (var i = 0, f; f = files[i]; i++) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var rawData = reader.result;
-                var xmlDoc = jQuery.parseXML(rawData);
-                if (xmlDoc) {
-                    ChangeXml(xmlDoc);
-                    $('#add-files').slideToggle('slow');
-                }
+    function NewSmsData(xmlString) {
+        if(typeof(Worker) !== "undefined") {
+            if(typeof(w) == "undefined") {
+                xmlWorker = new Worker("js/process-sms-data.js");
+                xmlWorker.onmessage = HandleWorkerUpdate;
             }
-            reader.readAsText(f);
+            var doc = $.parseXML(xmlString);
+            var jsonData =JSON.parse(  xml2json(doc).replace("undefined","") );
+            console.log( "sms-viewer.js: " + jsonData);
+            console.log( "sms-viewer.js: " + JSON.stringify(jsonData));
+            xmlWorker.postMessage({ "cmd" : 'json', "json" : jsonData});
+        } else {
+            var xmlDoc = jQuery.parseXML(xmlString);
+            if (xmlDoc) {
+                ChangeXml(xmlDoc);
+            }
         }
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    function HandleDragOver(evt) {
-        evt.stopPropagation();
-        evt.preventDefault();
-        evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
-    }
-
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Set up the page
-    // Setup the dnd listeners.
-    var dropZone = document.getElementById('drop_zone');
-    dropZone.addEventListener('dragover', HandleDragOver, false);
-    dropZone.addEventListener('drop', HandleFileSelect, false);
     // jQuery UI setup.
     $( "#projects" ).accordion();
     $( "#datepicker-from" ).datepicker();
@@ -167,12 +160,29 @@
         placeholder: "ui-state-highlight"
     });
     $( "#sortable-sms" ).disableSelection();
+    // Loading bars.
+    var progressbar = $( "#progressbar" ),
+        progressLabel = $( ".progress-label" );
+    progressbar.progressbar({
+        value: false,
+        change: function() {
+            progressLabel.text( progressbar.progressbar( "value" ) + "%" );
+        },
+        complete: function() {
+            progressLabel.text( "Complete!" );
+        }
+    }); 
+    // Setup the files listeners.
+    var dropZone = document.getElementById('drop_zone');
+    dropZone.addEventListener('dragover', HandleDragOver, false);
+    dropZone.addEventListener('drop', HandleFileSelect, false);
+    $(".update-sms").click(function () {
+        xmlWorker.postMessage({ "cmd" : 'filter'});
+    });
+
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Test xml. 
-    var testXml = '<?xml version="1.0" encoding="utf-8"?><smses count="983"><sms protocol="0" address="+10000000012" date="1383084883788" type="1" subject="null" body="Still at work?" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:14:43 PM" contact_name="Kevin" /><sms protocol="0" address="+10000000012" date="1383085269741" type="2" subject="null" body="Nah,  work is for chumps! " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:21:09 PM" contact_name="Kevin" /> <sms protocol="0" address="+10000000054" date="1383344146838" type="2" subject="null" body="In waverly? " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:15:46 PM" contact_name="Alex" /> <sms protocol="0" address="+10000000054" date="1383344334491" type="1" subject="null" body="Heading in 5 mins :)" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:18:54 PM" contact_name="Alex" /></smses>';
-    var xmlDoc = jQuery.parseXML(testXml);
-    if (xmlDoc) {
-        ChangeXml(xmlDoc);
-    }
+    var xmlString = '<?xml version="1.0" encoding="utf-8"?><smses count="983"><sms protocol="0" address="+10000000012" date="1383084883788" type="1" subject="null" body="Still at work?" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:14:43 PM" contact_name="Kevin" /><sms protocol="0" address="+10000000012" date="1383085269741" type="2" subject="null" body="Nah,  work is for chumps! " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:21:09 PM" contact_name="Kevin" /> <sms protocol="0" address="+10000000054" date="1383344146838" type="2" subject="null" body="In waverly? " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:15:46 PM" contact_name="Alex" /> <sms protocol="0" address="+10000000054" date="1383344334491" type="1" subject="null" body="Heading in 5 mins :)" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:18:54 PM" contact_name="Alex" /></smses>';
+    NewSmsData(xmlString);
 })();
