@@ -53,7 +53,7 @@ function SetupFilters(names, words) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Filter the list before displaying.
 function FilterSms(xmlDoc) {
-    self.postMessage({ "cmd": 'alert', "msg" : 'Filtering' );
+    self.postMessage({ "cmd": 'alert', "msg" : 'Filtering' });
     var $xml = $(xmlDoc);
     var listsms = $xml.find( "sms" );
     var smsList = $('#sortable-sms');
