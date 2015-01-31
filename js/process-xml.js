@@ -129,13 +129,12 @@ function ChangeXml(xmlDoc) {
     });
 }
 
-
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-self.addEventListener('message', function(e) {
-  var data = e.data;
+self.addEventListener('message', function(event) {
+  var data = event.data;
   switch (data.cmd) {
     case 'start':
-      self.postMessage('WORKER STARTED: ' + data.msg);
+      self.postMessage({ "cmd": 'alert', "msg" : 'WORKER STARTED: ' + data.msg);
       break;
     case 'stop':
       self.postMessage('WORKER STOPPED: ' + data.msg +

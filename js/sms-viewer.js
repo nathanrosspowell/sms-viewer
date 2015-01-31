@@ -80,8 +80,18 @@
     }
 
     function HandleWorkerUpdate(event) {
-        alert( event.data );
-    }
+        var data = event.data;
+        switch (data.cmd) {
+            case 'alert':
+                alert( data.msg );
+            case 'start':
+                break;
+            case 'stop':
+                break;
+            default:
+                break;
+        }
+  };
 
 
 
