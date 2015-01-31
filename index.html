@@ -9,227 +9,70 @@
 </head>
 
 <body>
-
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 <!-- Controls -->
-<div class="ui-widget">
-    <h1 class="ui-widget-header ui-corner-all">Controls</h1>
+<div class="ui-widget" id="add-files">
     <div class="ui-widget-content ui-corner-all">
-        <button id="submit">Update SMS</button>
-    </div>
-    <div>
-<div id="drop_zone">Drop files here</div>
-<output id="list"></output>
+        <div id="drop_zone">Drop files here</div>
+        <output id="list"></output>
     </div>
 </div>
 
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 <!-- Filters -->
 <div id="projects">
+    <!-- Names -->
     <h3>Filter Names</h3>
     <div>
         <div class="ui-widget">
             <label for="names">Names: </label>
             <input class="filter-name">
         </div>
+        <button class="update-sms">Update SMS</button>
     </div>
+    <!-- Dates -->
     <h3>Filter Dates</h3>
     <div>
         <p>From: <input type="text" id="datepicker-from"></p>
         <p>Until: <input type="text" id="datepicker-until"></p>
+        <button class="update-sms">Update SMS</button>
     </div>
+    <!-- Words -->
     <h3>Filter Words</h3>
     <div>
         <div class="ui-widget">
             <label for="words">Words: </label>
             <input class="filter-word">
         </div>
+        <button class="update-sms">Update SMS</button>
     </div>
 </div>
 
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<!-- Loading -->
+<div class="ui-widget" id="loading">
+    <div class="ui-widget-content ui-corner-all">
+        <div id="progress_bar"><div class="percent">0%</div></div>
+    </div>
+</div>
+
+<hr/>
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 <!-- SMS -->
 <div class="ui-widget">
-    <h1 class="ui-widget-header ui-corner-all">SMS</h1>
     <div class="ui-widget-content ui-corner-all">
         <ul id="sortable-sms">
         </ul>
     </div>
 </div>
  
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<!-- Scripts -->
+<div class="ui-widget">
 <script src="jquery/dist/jquery.min.js"></script>
 <script src="jquery-ui/jquery-ui.min.js"></script>
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-<!-- Scripts -->
-<script>
-(function(){
-	"use strict";
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Globals.
-    var names = [];
-    var words = [];
-
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Pass in a JSON doc and fill out all of the data.
-    function GetDataFromJson(xmlDoc) {
-        var $xml = $( xmlDoc );
-        var listsms = $xml.find( "sms" );
-        // Names
-        $.each(listsms, function(i) {
-            var $sms = $( this );
-            names.push($sms.attr("contact_name"));
-        });
-        names = jQuery.unique( names ); 
-        $( "#names" ).autocomplete({
-            source: names
-        });
-        // Words
-        $.each(listsms, function(i) {
-            var $sms = $( this );
-            var splits = $sms.attr("body").split(" ");
-            $.each(splits, function(j) {
-                words.push( splits[j] );
-            });
-        });
-        words = jQuery.unique( words ); 
-        $( "#words" ).autocomplete({
-            source: words
-        });
-        FilterSms(xmlDoc);
-    }
-
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Filter the list before displaying.
-    function FilterSms(xmlDoc) {
-        var $xml = $(xmlDoc);
-        var listsms = $xml.find( "sms" );
-        // SMS
-        var smsList = $('#sortable-sms');
-        smsList.empty(); 
-        $.each(listsms, function(i) {
-            var $sms = $( this );
-            // SMS attributes.
-            var smsName = $sms.attr("contact_name");
-            var smsBody = $sms.attr("body");
-            // Check if it can be added.
-            var add = true;
-            // Name filter.
-            var $filterNames = $('input.filter-name[value!=""]').filter(function () {
-                return this.value.length > 0
-            });
-            if ( $filterNames.length > 0 ) {
-                console.log( "filterNames " + $filterNames.length );
-                add = false;
-                $filterNames.each(function() {
-                    var name = $(this).val();
-                    console.log( "name " + name + " = '" + smsName + "'");
-                    if ( name === smsName ) {
-                        add = true;
-                        console.log( "add");
-                    }
-                });
-            }
-            // Date filter.
-            // Todo....
-            // Word filter.
-            var $filterWords = $('input.filter-word[value!=""]').filter(function () {
-                return this.value.length > 0
-            });
-            if ( $filterWords.length > 0) {
-                console.log( "filterWords " + $filterWords.length );
-                add = false;
-                $filterWords.each(function() {
-                    var word = $(this).val();
-                    console.log( "word '" + word + "' = '" + smsBody + "'");
-                    if ( smsBody.indexOf(word) > -1) {
-                        add = true;
-                        console.log( "add");
-                    }
-                });
-            }
-            // Add a list item.
-            if ( add ) {
-                var li = $('<li/>')
-                    .addClass('ui-state-default')
-                    .appendTo(smsList);
-                var name = $('<h4/>')
-                    .text(smsName + ": " + $sms.attr("readable_date"))
-                    .appendTo(li);
-                var body = $('<p/>')
-                    .text($sms.attr("body"))
-                    .appendTo(li);
-            }
-        });
-    }
-
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Test xml. 
-    var testXml = '<?xml version="1.0" encoding="utf-8"?><smses count="983"><sms protocol="0" address="+10000000012" date="1383084883788" type="1" subject="null" body="Still at work?" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:14:43 PM" contact_name="Kevin" /><sms protocol="0" address="+10000000012" date="1383085269741" type="2" subject="null" body="Nah,  work is for chumps! " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:21:09 PM" contact_name="Kevin" /> <sms protocol="0" address="+10000000054" date="1383344146838" type="2" subject="null" body="In waverly? " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:15:46 PM" contact_name="Alex" /> <sms protocol="0" address="+10000000054" date="1383344334491" type="1" subject="null" body="Heading in 5 mins :)" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:18:54 PM" contact_name="Alex" /></smses>';
-    var xmlDoc = jQuery.parseXML(testXml);
-    if (xmlDoc) {
-        GetDataFromJson(xmlDoc);
-    }
-
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // jQuery UI setup.
-    $("input.filter-name").each(function() {
-        $(this).autocomplete({
-            source: names
-        });
-    });
-    $("input.filter-word").each(function() {
-        $(this).autocomplete({
-            source: words
-        });
-    });
-    $( "#projects" ).accordion();
-    $( "#datepicker-from" ).datepicker();
-    $( "#datepicker-until" ).datepicker();
-    $( "#sortable-sms" ).sortable({
-        placeholder: "ui-state-highlight"
-    });
-    $( "#sortable-sms" ).disableSelection();
-
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Update setup.
-    $("#submit").click(function () {
-        FilterSms(xmlDoc);
-    });
-
-
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    function handleFileSelect(evt) {
-        evt.stopPropagation();
-        evt.preventDefault();
-        var files = evt.dataTransfer.files; // FileList object.
-        for (var i = 0, f; f = files[i]; i++) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var rawData = reader.result;
-                var xmlDoc = jQuery.parseXML(rawData);
-                if (xmlDoc) {
-                    GetDataFromJson(xmlDoc);
-                }
-            }
-            reader.readAsText(f);
-        }
-    }
-
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    function handleDragOver(evt) {
-        evt.stopPropagation();
-        evt.preventDefault();
-        evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
-    }
-
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   // Setup the dnd listeners.
-   var dropZone = document.getElementById('drop_zone');
-   dropZone.addEventListener('dragover', handleDragOver, false);
-   dropZone.addEventListener('drop', handleFileSelect, false);
-
-})();
-</script>
+<script src="js/sms-viewer.js"></script>
  
 </body>
 </html>
