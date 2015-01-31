@@ -125,15 +125,15 @@
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Test xml. 
     var testXml = '<?xml version="1.0" encoding="utf-8"?><smses count="983"><sms protocol="0" address="+10000000012" date="1383084883788" type="1" subject="null" body="Still at work?" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:14:43 PM" contact_name="Kevin" /><sms protocol="0" address="+10000000012" date="1383085269741" type="2" subject="null" body="Nah,  work is for chumps! " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:21:09 PM" contact_name="Kevin" /> <sms protocol="0" address="+10000000054" date="1383344146838" type="2" subject="null" body="In waverly? " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:15:46 PM" contact_name="Alex" /> <sms protocol="0" address="+10000000054" date="1383344334491" type="1" subject="null" body="Heading in 5 mins :)" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:18:54 PM" contact_name="Alex" /></smses>';
-    var xmlDoc = jQuery.parseXML(testXml);
     
     if(typeof(Worker) !== "undefined") {
         if(typeof(w) == "undefined") {
             xmlWorker = new Worker("js/process-xml.js");
             xmlWorker.onmessage = HandleWorkerUpdate;
-            xmlWorker.postMessage({ "cmd" : 'xml', "xml" : xmlDoc});
+            xmlWorker.postMessage({ "cmd" : 'xml', "xml" : testXml});
         }
     } else {
+        var xmlDoc = jQuery.parseXML(testXml);
         if (xmlDoc) {
             ChangeXml(xmlDoc);
         }
