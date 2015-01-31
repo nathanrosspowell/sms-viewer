@@ -12,21 +12,16 @@ function log(msg) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Pass in a JSON doc and fill out all of the data.
 function GetDataFromJson(jsonDoc) {
-    log( "GetDataFromJson" );
     var names = [];
     var words = [];
-    log( "jsonDoc " + JSON.stringify(jsonDoc) );
     var listsms = jsonDoc["smses"]["sms"];
-    log( "listsms" + JSON.stringify(listsms) );
     // Names
     _.each(listsms, function(sms) {
-        log( "NAMES ---------------  " + JSON.stringify(sms) );
         names.push(sms["@contact_name"]);
     });
     names = _.unique( names ); 
     // Words
     _.each(listsms, function(sms) {
-        log( "WORDS --------------- " + JSON.stringify(sms) );
         var splits = sms["@body"].split(" ");
         _.each(splits, function(split) {
             words.push( split );
@@ -42,9 +37,8 @@ function GetDataFromJson(jsonDoc) {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Filter the list before displaying.
-function FilterSms(jsonDoc) {
+function FilterSms(jsonDoc, nameFilters, wordFilters) {
     self.postMessage({ "cmd": 'ClearSms'});
-    log( JSON.stringify(jsonDoc) );
     var listsms = jsonDoc["smses"]["sms"];
     // Make the heavy work time out in a loop.
     var jsonElements = _(jsonDoc).find('Object');
@@ -52,45 +46,34 @@ function FilterSms(jsonDoc) {
     var index = 0;
     for (; index < length; index++) {
         var sms =  listsms[index];
-        log( "SMS " + index.toString() + " : " + JSON.stringify(sms) );
-        log( "Address: " + sms["@address"] );
         // SMS attributes.
         var smsName = sms["@contact_name"];
         var smsBody = sms["@body"];
         // Check if it can be added.
         var add = true;
         // Name filter.
-        var _filterNames = []; /*_('input.filter-name[value!=""]').filter(function () {
-            return this.value.length > 0
-        });*/
-        if ( _filterNames.length > 0 ) {
-            console.log( "filterNames " + _filterNames.length );
+        log( smsName + " ... " + add.toString() + " : " + nameFilters );
+        if ( nameFilters.length > 0 ) {
             add = false;
-            _filterNames.each(function() {
-                var name = _(this).val();
-                console.log( "name " + name + " = '" + smsName + "'");
+            _.each( nameFilters, function(name) {
+                log( name + "   " + smsName );
                 if ( name === smsName ) {
                     add = true;
-                    console.log( "add");
                 }
             });
         }
+        log( smsName + " ... " + add.toString() + " : " + nameFilters );
         if ( add ){
+
             // Date filter.
             // Todo....
+            
             // Word filter.
-            var _filterWords = []; /* _('input.filter-word[value!=""]').filter(function () {
-                return this.value.length > 0
-            });*/
-            if ( _filterWords.length > 0) {
-                console.log( "filterWords " + _filterWords.length );
+            if ( wordFilters.length > 0) {
                 add = false;
-                _filterWords.each(function() {
-                    var word = _(this).val();
-                    console.log( "word '" + word + "' = '" + smsBody + "'");
+                _.each( wordFilters, function(word) {
                     if ( smsBody.indexOf(word) > -1) {
                         add = true;
-                        console.log( "add");
                     }
                 });
             }
@@ -109,7 +92,7 @@ function FilterSms(jsonDoc) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function ChangeData(jsonDoc) {
     GetDataFromJson(jsonDoc);
-    FilterSms(jsonDoc);
+    FilterSms(jsonDoc, [], []);
     self.jsonDoc = jsonDoc;
 }
 
@@ -118,11 +101,10 @@ self.addEventListener('message', function(event) {
     var data = event.data;
     switch (data.cmd) {
         case 'json':
-            log( "json" );
             ChangeData(data.json);
             break;
         case 'filter':
-            FilterSms(self.jsonDoc);
+            FilterSms(self.jsonDoc, data.nameFilters, data.wordFilters);
             break;
         case 'stop':
             self.postMessage('WORKER STOPPED: ' + data.msg + '. (buttons will no longer work)');

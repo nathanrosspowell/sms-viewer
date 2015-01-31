@@ -130,6 +130,25 @@
         });
     }
 
+    function UpdateFilters() {
+        function MakeArray( x ) {
+            if( x === 'undefined' ){
+                return [];
+            } else if( typeof x === 'string' ) {
+                return [ x ];
+            } else {
+                return x;
+            }
+        }
+        var nameFilters = $('input.filter-name[value!=""]').val();
+        var wordFilters = $('input.filter-word[value!=""]').val();
+        xmlWorker.postMessage({
+            "cmd" : 'filter', 
+            "nameFilters" : MakeArray(nameFilters),
+            "wordFilters": MakeArray(wordFilters)
+        });
+    }
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function NewSmsData(xmlString) {
         if(typeof(Worker) !== "undefined") {
@@ -139,8 +158,6 @@
             }
             var doc = $.parseXML(xmlString);
             var jsonData =JSON.parse(  xml2json(doc).replace("undefined","") );
-            console.log( "sms-viewer.js: " + jsonData);
-            console.log( "sms-viewer.js: " + JSON.stringify(jsonData));
             xmlWorker.postMessage({ "cmd" : 'json', "json" : jsonData});
         } else {
             var xmlDoc = jQuery.parseXML(xmlString);
@@ -176,11 +193,7 @@
     var dropZone = document.getElementById('drop_zone');
     dropZone.addEventListener('dragover', HandleDragOver, false);
     dropZone.addEventListener('drop', HandleFileSelect, false);
-    $(".update-sms").click(function () {
-        xmlWorker.postMessage({ "cmd" : 'filter'});
-    });
-
-
+    $(".update-sms").click(UpdateFilters);
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Test xml. 
     var xmlString = '<?xml version="1.0" encoding="utf-8"?><smses count="983"><sms protocol="0" address="+10000000012" date="1383084883788" type="1" subject="null" body="Still at work?" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:14:43 PM" contact_name="Kevin" /><sms protocol="0" address="+10000000012" date="1383085269741" type="2" subject="null" body="Nah,  work is for chumps! " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:21:09 PM" contact_name="Kevin" /> <sms protocol="0" address="+10000000054" date="1383344146838" type="2" subject="null" body="In waverly? " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:15:46 PM" contact_name="Alex" /> <sms protocol="0" address="+10000000054" date="1383344334491" type="1" subject="null" body="Heading in 5 mins :)" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:18:54 PM" contact_name="Alex" /></smses>';
