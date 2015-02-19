@@ -42,7 +42,6 @@ function GetDataFromJson(jsonDoc) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Filter the list before displaying.
 function FilterSms(jsonDoc, nameFilters, wordFilters) {
-    self.postMessage({ "cmd": 'ClearSms'});
     var listsms = jsonDoc["smses"]["sms"];
     // Make the heavy work time out in a loop.
     var length = listsms.length;
