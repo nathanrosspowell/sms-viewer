@@ -131,22 +131,26 @@
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function UpdateFilters() {
-        function MakeArray( x ) {
-            if( x === 'undefined' || x === '' || x === "" ){
-                return [];
-            } else if( typeof x === 'string' ) {
-                return [ x ];
-            } else {
-                return x;
-            }
-        }
         ClearSms();
-        var nameFilters = $('input.filter-name[value!=""]').val();
-        var wordFilters = $('input.filter-word[value!=""]').val();
+        var nameFilters = [];
+        var wordFilters = [];
+        $('input.filter-name').val(function( index, value ) {
+            if ( value !== "" ) {
+                nameFilters.push( value );
+            }
+            return value;
+        });        
+        $('input.filter-word[value!=""]').val(function( index, value ) {
+            if ( value !== "" ) {
+                wordFilters.push( value );
+            }
+            return value;
+        });        
+        console.log( " Names: ", nameFilters );
         dataWorker.postMessage({
             "cmd" : 'filter', 
-            "nameFilters" : MakeArray(nameFilters),
-            "wordFilters": MakeArray(wordFilters)
+            "nameFilters" : nameFilters,
+            "wordFilters": wordFilters
         });
     }
 
