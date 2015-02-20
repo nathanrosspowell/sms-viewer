@@ -1,19 +1,20 @@
 // sms-viewer.js
-//
 // Thanks go to:
 //     http://www.html5rocks.com/en/tutorials/file/dndfiles/ 
 (function(){
 	"use strict";
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //  Globals.
-    var xmlWorker = undefined;
+    var dataWorker = undefined;
     var reader = undefined;
-    var progress = document.querySelector('.percent');
+    var nameAutocomplete = [];
+    var wordAutocomplete = [];
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function HandleFileSelect(evt) {
         evt.stopPropagation();
         evt.preventDefault();
+        ClearAll();
         var files = evt.dataTransfer.files; // FileList object.
         for (var i = 0, f; f = files[i]; i++) {
             reader = new FileReader();
@@ -21,8 +22,6 @@
             reader.onprogress = updateProgress;
             reader.onabort = function(e) {
                 alert('File read cancelled');
-            };
-            reader.onloadstart = function(e) {
             };
             reader.onload = function(e) {
                 progressbar.progressbar( "value", 100  );
@@ -42,15 +41,9 @@
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function updateProgress(evt) {
-        // evt is an ProgressEvent.
         if (evt.lengthComputable) {
             var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
-            // Increase the progress bar length.
-            if (percentLoaded < 100) {
-                progress.style.width = percentLoaded + '%';
-                progress.textContent = percentLoaded + '%';
-                progressbar.progressbar( "value", percentLoaded  );
-            }
+            progressbar.progressbar( "value", percentLoaded  );
         }
     }
 
@@ -85,9 +78,6 @@
             case 'SetupFilters':
                 SetupFilters( data.names, data.words );
                 break;
-            case 'ClearSms':
-                ClearSms();
-                break;
             case 'AddSms':
                 var smsList = $('#sortable-sms');
                 var li = $('<li/>')
@@ -112,49 +102,54 @@
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Set up filters.
     function SetupFilters(names, words) {
+        nameAutocomplete = jQuery.unique(nameAutocomplete.concat(names));
+        wordAutocomplete = jQuery.unique(wordAutocomplete.concat(words));
         $("input.filter-name").each(function() {
             $(this).autocomplete({
-                source: names
+                source: nameAutocomplete
             });
         });
         $("input.filter-word").each(function() {
             $(this).autocomplete({
-                source: words
+                source: wordAutocomplete 
             });
         });
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    function ClearSms() { 
-        var smsList = $('#sortable-sms');
-        smsList.empty(); 
+    function ClearAll() {
+        ClearSms();
+        nameAutocomplete = [];
+        wordAutocomplete = [];
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    function ChangeData(string) {
-        GetDataFromJson(jsonDoc);
-        FilterSms(jsonDoc);
-        _(".update-sms").click(function () {
-        });
+    function ClearSms() { 
+        $('#sortable-sms').empty();
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function UpdateFilters() {
-        function MakeArray( x ) {
-            if( x === 'undefined' || x === '' || x === "" ){
-                return [];
-            } else if( typeof x === 'string' ) {
-                return [ x ];
-            } else {
-                return x;
+        ClearSms();
+        var nameFilters = [];
+        var wordFilters = [];
+        $('input.filter-name').val(function( index, value ) {
+            if ( value !== "" ) {
+                nameFilters.push( value );
             }
-        }
-        var nameFilters = $('input.filter-name[value!=""]').val();
-        var wordFilters = $('input.filter-word[value!=""]').val();
-        xmlWorker.postMessage({
+            return value;
+        });        
+        $('input.filter-word[value!=""]').val(function( index, value ) {
+            if ( value !== "" ) {
+                wordFilters.push( value );
+            }
+            return value;
+        });        
+        console.log( " Names: ", nameFilters );
+        dataWorker.postMessage({
             "cmd" : 'filter', 
-            "nameFilters" : MakeArray(nameFilters),
-            "wordFilters": MakeArray(wordFilters)
+            "nameFilters" : nameFilters,
+            "wordFilters": wordFilters
         });
     }
 
@@ -162,18 +157,40 @@
     function NewSmsData(xmlString) {
         if(typeof(Worker) !== "undefined") {
             if(typeof(w) == "undefined") {
-                xmlWorker = new Worker("js/process-sms-data.js");
-                xmlWorker.onmessage = HandleWorkerUpdate;
+                dataWorker = new Worker("js/process-sms-data.js");
+                dataWorker.onmessage = HandleWorkerUpdate;
             }
             var x2js = new X2JS(); 
             var jsonData = x2js.xml_str2json(xmlString);
-            xmlWorker.postMessage({ "cmd" : 'json', "json" : jsonData});
+            console.log( JSON.stringify( jsonData) );
+            dataWorker.postMessage({ "cmd" : 'json', "json" : jsonData});
         } else {
             var xmlDoc = jQuery.parseXML(xmlString);
             if (xmlDoc) {
                 ChangeXml(xmlDoc);
             }
         }
+    }
+
+    function SetupFilterCreation(name) {
+        $( "button.remove-filter-"+name ).click(function() {
+            $( this ).closest("div").remove();
+        });
+        $( "button.add-filter-"+name ).click(function() {
+            var extras = $( "#extra-filter-"+name);
+            var div = $('<div/>').appendTo(extras);
+            $('<input/>')
+                .addClass('filter-'+name)
+                .appendTo(div);
+            $('<button/>')
+                .addClass('remove-filter-'+name)
+                .text("Remove")
+                .appendTo(div)
+                .click(function() {
+                    $( this ).closest("div").remove();
+                });
+            SetupFilters([],[]);
+        });
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -198,6 +215,9 @@
             progressLabel.text( "Complete!" );
         }
     }); 
+    // The 'remove' buttons functionality.
+    SetupFilterCreation("name");
+    SetupFilterCreation("word");
     // Setup the files listeners.
     var dropZone = document.getElementById('drop_zone');
     dropZone.addEventListener('dragover', HandleDragOver, false);
