@@ -172,6 +172,27 @@
         }
     }
 
+    function SetupFilterCreation(name) {
+        $( "button.remove-filter-"+name ).click(function() {
+            $( this ).closest("div").remove();
+        });
+        $( "button.add-filter-"+name ).click(function() {
+            var extras = $( "#extra-filter-"+name);
+            var div = $('<div/>').appendTo(extras);
+            $('<input/>')
+                .addClass('filter-'+name)
+                .appendTo(div);
+            $('<button/>')
+                .addClass('remove-filter-'+name)
+                .text("Remove")
+                .appendTo(div)
+                .click(function() {
+                    $( this ).closest("div").remove();
+                });
+            SetupFilters([],[]);
+        });
+    }
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Set up the page.
     // jQuery UI setup.
@@ -195,42 +216,8 @@
         }
     }); 
     // The 'remove' buttons functionality.
-    $( "button.remove-filter-name" ).click(function() {
-        $( this ).closest("div").remove();
-    });
-    $( "button.remove-filter-word" ).click(function() {
-        $( this ).closest("div").remove();
-    });
-    $( "button.add-filter-name" ).click(function() {
-        var extras = $( "#extra-filter-name");
-        var div = $('<div/>').appendTo(extras);
-        $('<input/>')
-            .addClass('filter-name')
-            .appendTo(div);
-        $('<button/>')
-            .addClass('remove-filter-name')
-            .text("Remove")
-            .appendTo(div)
-            .click(function() {
-                $( this ).closest("div").remove();
-            });
-        SetupFilters([],[]);
-    });
-    $( "button.add-filter-word" ).click(function() {
-        var extras = $( "#extra-filter-word");
-        var div = $('<div/>').appendTo(extras);
-        $('<input/>')
-            .addClass('filter-word')
-            .appendTo(div);
-        $('<button/>')
-            .addClass('remove-filter-word')
-            .text("Remove")
-            .appendTo(div)
-            .click(function() {
-                $( this ).closest("div").remove();
-            });
-        SetupFilters([],[]);
-    });
+    SetupFilterCreation("name");
+    SetupFilterCreation("word");
     // Setup the files listeners.
     var dropZone = document.getElementById('drop_zone');
     dropZone.addEventListener('dragover', HandleDragOver, false);
