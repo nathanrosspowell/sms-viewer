@@ -1,5 +1,5 @@
-`sms-viewer`
-============
+[`sms-viewer`][website]
+========================
 
 Some code to open and view text message backup files for easier browsing.
 
@@ -24,3 +24,5 @@ To Do
 * Add modifiers to filters
     - Is / Is not
     - Regex expressions
+
+[website]: http://nathanrosspowell.github.io/sms-viewer
