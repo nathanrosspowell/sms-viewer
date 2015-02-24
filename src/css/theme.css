@@ -41,3 +41,10 @@ body {
     top: 4px;
     text-shadow: 1px 1px 0 #fff;
 }
+
+.sms-sent {
+    text-align: right;
+}
+
+.sms-received {
+}

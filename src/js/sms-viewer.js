@@ -82,13 +82,17 @@
                 var smsList = $('#sortable-sms');
                 var li = $('<li/>')
                     .addClass('ui-state-default')
+                    .addClass(data.received ? "sms-received" : "sms-sent" )
                     .appendTo(smsList);
-                var name = $('<h4/>')
-                    .text(data.header)
+                var div = $('<div/>')
+                    .addClass(data.received ? "sms-received" : "sms-sent" )
                     .appendTo(li);
+                var name = $('<h4/>')
+                    .text((data.received ? "From" : "To") + " " + data.header)
+                    .appendTo(div);
                 var body = $('<p/>')
                     .text(data.body)
-                    .appendTo(li);
+                    .appendTo(div);
                 break;
             case 'progress':
                 var percentLoaded = Math.round((data.loaded / data.total) * 100);
