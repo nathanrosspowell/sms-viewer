@@ -82,7 +82,7 @@ function FilterSms(jsonDoc, nameFilters, wordFilters) {
                     "cmd": 'AddSms', 
                     "header" : smsName + ": " + sms["_readable_date"],
                     "body" :  sms["_body"],
-                    "recieved" : sms["_recieved"] == "1"
+                    "received" : sms["_type"] == "1"
                 });
             }
         }
