@@ -118,6 +118,24 @@
                 source: wordAutocomplete 
             });
         });
+        // The data picker.
+        $( "#from" ).datepicker({
+            defaultDate: "+1w",
+            changeMonth: true,
+            numberOfMonths: 3,
+            onClose: function( selectedDate ) {
+                $( "#to" ).datepicker( "option", "minDate", selectedDate );
+            }
+        });
+        $( "#to" ).datepicker({
+            defaultDate: "+1w",
+            changeMonth: true,
+            numberOfMonths: 3,
+            onClose: function( selectedDate ) {
+                $( "#from" ).datepicker( "option", "maxDate", selectedDate );
+            }
+        });
+       
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -137,6 +155,7 @@
         ClearSms();
         var nameFilters = [];
         var wordFilters = [];
+        var dateFilters = [];
         $('input.filter-name').val(function( index, value ) {
             if ( value !== "" ) {
                 nameFilters.push( value );
@@ -153,7 +172,8 @@
         dataWorker.postMessage({
             "cmd" : 'filter', 
             "nameFilters" : nameFilters,
-            "wordFilters": wordFilters
+            "wordFilters": wordFilters,
+            "dateFilters": dateFilters
         });
     }
 
@@ -197,12 +217,42 @@
         });
     }
 
+    function SetupDatePickerCreation() {
+        $( "button.remove-filter-date" ).click(function() {
+            $( this ).closest("div").remove();
+        });
+        $( "button.add-filter-date" ).click(function() {
+            var extras = $( "#extra-filter-date");
+            var div = $('<div/>').appendTo(extras);
+            $('<input/>')
+                .addClass('filter-date')
+                .appendTo(div);
+            $('<button/>')
+                .addClass('remove-filter-date')
+                .text("Remove")
+                .appendTo(div)
+                .click(function() {
+                    $( this ).closest("div").remove();
+                });
+            SetupFilters([],[]);
+        });
+    }
+
+/*
+<label for="from">From</label>
+<input type="text" id="from" name="from">
+<label for="to">to</label>
+<input type="text" id="to" name="to"> 
+ */
+
+
+
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Set up the page.
+    $.datepicker.setDefaults({ dateFormat: 'dd MM yy' });
     // jQuery UI setup.
     $( "#projects" ).accordion();
-    $( "#datepicker-from" ).datepicker();
-    $( "#datepicker-until" ).datepicker();
     $( "#sortable-sms" ).sortable({
         placeholder: "ui-state-highlight"
     });
@@ -219,7 +269,7 @@
             progressLabel.text( "Complete!" );
         }
     }); 
-    // The 'remove' buttons functionality.
+       // The 'remove' buttons functionality.
     SetupFilterCreation("name");
     SetupFilterCreation("word");
     // Setup the files listeners.

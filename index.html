@@ -56,8 +56,12 @@
     <!-- Dates -->
     <h3>Filter Dates</h3>
     <div>
-        <p>From: <input type="text" id="datepicker-from"></p>
-        <p>Until: <input type="text" id="datepicker-until"></p>
+        <div id="extra-filter-date" />
+            <label for="from">From</label>
+            <input type="text" id="from" name="from">
+            <label for="to">to</label>
+            <input type="text" id="to" name="to">
+        </div>
         <button class="update-sms">Update SMS</button>
     </div>
     <!-- Words -->
