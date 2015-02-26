@@ -1,15 +1,8 @@
 // sms-viewer.js
 // Thanks go to:
-//     http://www.html5rocks.com/en/tutorials/file/dndfiles/ 
+//     http://www.html5rocks.com/en/tutorials/file/dndfiles/
 (function(){
 	"use strict";
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    //  Globals.
-    var dataWorker = undefined;
-    var reader = undefined;
-    var nameAutocomplete = [];
-    var wordAutocomplete = [];
-
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function HandleFileSelect(evt) {
         evt.stopPropagation();
@@ -76,7 +69,7 @@
         console.log( "HandleWorkerUpdate: " + JSON.stringify(data));
         switch (data.cmd) {
             case 'SetupFilters':
-                SetupFilters( data.names, data.words );
+                SetupFilters( data.names, data.words, data.dates );
                 break;
             case 'AddSms':
                 var smsList = $('#sortable-sms');
@@ -105,9 +98,18 @@
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Set up filters.
-    function SetupFilters(names, words) {
+    function SetupFilters(names, words, dates) {
+        if (typeof names === 'undefined') {
+            names = []
+        }
+        if (typeof words === 'undefined') {
+            names = []
+        }
         nameAutocomplete = jQuery.unique(nameAutocomplete.concat(names));
         wordAutocomplete = jQuery.unique(wordAutocomplete.concat(words));
+        if (typeof dates !== 'undefined') {
+            dateRange = dates;
+        }
         $("input.filter-name").each(function() {
             $(this).autocomplete({
                 source: nameAutocomplete
@@ -115,27 +117,30 @@
         });
         $("input.filter-word").each(function() {
             $(this).autocomplete({
-                source: wordAutocomplete 
+                source: wordAutocomplete
             });
         });
         // The data picker.
         $( "#from" ).datepicker({
+            minDate: dateRange["low"],
+            maxDate: dateRange["high"],
             defaultDate: "+1w",
             changeMonth: true,
-            numberOfMonths: 3,
+            numberOfMonths: 2,
             onClose: function( selectedDate ) {
                 $( "#to" ).datepicker( "option", "minDate", selectedDate );
             }
-        });
+        }).datepicker( "setDate", dateRange["low"] );
         $( "#to" ).datepicker({
+            minDate: dateRange["low"],
+            maxDate: dateRange["high"],
             defaultDate: "+1w",
             changeMonth: true,
-            numberOfMonths: 3,
+            numberOfMonths: 2,
             onClose: function( selectedDate ) {
                 $( "#from" ).datepicker( "option", "maxDate", selectedDate );
             }
-        });
-       
+        }).datepicker( "setDate", dateRange["high"] );
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -143,10 +148,11 @@
         ClearSms();
         nameAutocomplete = [];
         wordAutocomplete = [];
+        dateRange = undefined;
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    function ClearSms() { 
+    function ClearSms() {
         $('#sortable-sms').empty();
     }
 
@@ -155,25 +161,36 @@
         ClearSms();
         var nameFilters = [];
         var wordFilters = [];
-        var dateFilters = [];
+        var dateFilter = undefined;
         $('input.filter-name').val(function( index, value ) {
             if ( value !== "" ) {
                 nameFilters.push( value );
             }
             return value;
-        });        
+        });
         $('input.filter-word[value!=""]').val(function( index, value ) {
             if ( value !== "" ) {
                 wordFilters.push( value );
             }
             return value;
-        });        
-        console.log( " Names: ", nameFilters );
+        });
+        var fromDate = $('#from').val();
+        var toDate = $('#to').val();
+        if ( fromDate !== '' && toDate !== '' ) {
+            var low = new Date(fromDate);
+            var high = new Date(toDate);
+            low.setHours(0,0,0,0)
+            high.setHours(0,0,0,0);
+            dateFilter = { 
+                "low" : low,
+                "high" : high
+            };
+        }
         dataWorker.postMessage({
-            "cmd" : 'filter', 
+            "cmd" : 'filter',
             "nameFilters" : nameFilters,
             "wordFilters": wordFilters,
-            "dateFilters": dateFilters
+            "dateFilters": dateFilter
         });
     }
 
@@ -184,7 +201,7 @@
                 dataWorker = new Worker("js/process-sms-data.js");
                 dataWorker.onmessage = HandleWorkerUpdate;
             }
-            var x2js = new X2JS(); 
+            var x2js = new X2JS();
             var jsonData = x2js.xml_str2json(xmlString);
             console.log( JSON.stringify( jsonData) );
             dataWorker.postMessage({ "cmd" : 'json', "json" : jsonData});
@@ -213,7 +230,7 @@
                 .click(function() {
                     $( this ).closest("div").remove();
                 });
-            SetupFilters([],[]);
+            SetupFilters();
         });
     }
 
@@ -234,19 +251,17 @@
                 .click(function() {
                     $( this ).closest("div").remove();
                 });
-            SetupFilters([],[]);
+            SetupFilters();
         });
     }
 
-/*
-<label for="from">From</label>
-<input type="text" id="from" name="from">
-<label for="to">to</label>
-<input type="text" id="to" name="to"> 
- */
-
-
-
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //  Globals.
+    var dataWorker = undefined;
+    var reader = undefined;
+    var nameAutocomplete = [];
+    var wordAutocomplete = [];
+    var dateRange = undefined;
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Set up the page.
@@ -268,8 +283,8 @@
         complete: function() {
             progressLabel.text( "Complete!" );
         }
-    }); 
-       // The 'remove' buttons functionality.
+    });
+    // The 'remove' buttons functionality.
     SetupFilterCreation("name");
     SetupFilterCreation("word");
     // Setup the files listeners.
@@ -279,7 +294,7 @@
     $(".update-sms").click(UpdateFilters);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Test xml. 
+    // Test xml.
     var xmlString = '<?xml version="1.0" encoding="utf-8"?><smses count="983"><sms protocol="0" address="+10000000012" date="1383084883788" type="1" subject="null" body="Still at work?" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:14:43 PM" contact_name="Kevin" /><sms protocol="0" address="+10000000012" date="1383085269741" type="2" subject="null" body="Nah,  work is for chumps! " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-10-29 6:21:09 PM" contact_name="Kevin" /> <sms protocol="0" address="+10000000054" date="1383344146838" type="2" subject="null" body="In waverly? " toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:15:46 PM" contact_name="Alex" /> <sms protocol="0" address="+10000000054" date="1383344334491" type="1" subject="null" body="Heading in 5 mins :)" toa="null" sc_toa="null" service_center="+10000000001" read="1" status="-1" locked="0" date_sent="0" readable_date="2013-11-01 6:18:54 PM" contact_name="Alex" /></smses>';
     NewSmsData(xmlString);
 })();

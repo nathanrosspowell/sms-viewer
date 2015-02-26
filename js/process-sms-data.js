@@ -14,34 +14,37 @@ function log(msg) {
 function GetDataFromJson(jsonDoc) {
     var names = [];
     var words = [];
+    var dates = { "low": null, "high": null };
     var listsms = jsonDoc["smses"]["sms"];
     // Names
     _.each(listsms, function(sms) {
         names.push(sms["_contact_name"]);
-    });
-    names = _.unique( names ); 
-    // Words
-    _.each(listsms, function(sms) {
         var splits = sms["_body"].split(" ");
         _.each(splits, function(split) {
             words.push( split );
         });
+        var date = new Date(sms["_readable_date"]);
+        date.setHours(0,0,0,0) 
+        if ( date < dates["low"] || dates["low"] === null ) {
+            dates["low"] = date;
+        }
+        if ( date > dates["high"] || dates["high"] === null ) {
+            dates["high"] = date;
+        }
     });
+    names = _.unique( names ); 
     words = _.unique( words ); 
     self.postMessage({
         "cmd" : "SetupFilters",
         "names" : names , 
-        "words" : words 
+        "words" : words,
+        "dates" : dates
     });
-    return {
-        "names" : names, 
-        "words" : words
-    };
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Filter the list before displaying.
-function FilterSms(jsonDoc, nameFilters, wordFilters) {
+function FilterSms(jsonDoc, nameFilters, wordFilters, dateFilters) {
     var listsms = jsonDoc["smses"]["sms"];
     // Make the heavy work time out in a loop.
     var length = listsms.length;
@@ -51,39 +54,52 @@ function FilterSms(jsonDoc, nameFilters, wordFilters) {
         // SMS attributes.
         var smsName = sms["_contact_name"];
         var smsBody = sms["_body"];
+        var smsDate = sms["_readable_date"];
         // Check if it can be added.
+        // Date filter.
         var add = true;
-        // Name filter.
-        if ( nameFilters.length > 0 ) {
-            add = false;
-            _.each( nameFilters, function(name) {
-                if ( name === smsName ) {
-                    add = true;
-                }
-            });
-        }
-        if ( add ){
-
-            // Date filter.
-            // Todo....
-            
-            // Word filter.
-            if ( wordFilters.length > 0) {
+        if ( typeof dateFilters !== 'undefined' ) {
+            var date = new Date(smsDate);
+            date.setHours(0,0,0,0) 
+            console.log( "FilterSms", smsDate, date, dateFilters );
+            if ( date < dateFilters["low"] ){
+                console.log( "   low" );
                 add = false;
-                _.each( wordFilters, function(word) {
-                    if ( smsBody.indexOf(word) > -1) {
+            }
+            if ( date > dateFilters["high"] ){
+                console.log( "   high" );
+                add = false;
+            }
+        }
+        if ( add ) {
+            // Name filter.
+            if ( nameFilters.length > 0 ) {
+                add = false;
+                _.each( nameFilters, function(name) {
+                    if ( name === smsName ) {
                         add = true;
                     }
                 });
             }
-            // Add a list item.
-            if ( add ) {
-                self.postMessage({
-                    "cmd": 'AddSms', 
-                    "header" : smsName + ": " + sms["_readable_date"],
-                    "body" :  sms["_body"],
-                    "received" : sms["_type"] == "1"
-                });
+            if ( add ){
+                // Word filter.
+                if ( wordFilters.length > 0) {
+                    add = false;
+                    _.each( wordFilters, function(word) {
+                        if ( smsBody.indexOf(word) > -1) {
+                            add = true;
+                        }
+                    });
+                }
+                // Add a list item.
+                if ( add ) {
+                    self.postMessage({
+                        "cmd": 'AddSms', 
+                        "header" : smsName + ": " + sms["_readable_date"],
+                        "body" :  sms["_body"],
+                        "received" : sms["_type"] == "1"
+                    });
+                }
             }
         }
         self.postMessage({"cmd" : "progress", "loaded" : index + 1, "total" : length});
@@ -93,7 +109,7 @@ function FilterSms(jsonDoc, nameFilters, wordFilters) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function ChangeData(jsonDoc) {
     GetDataFromJson(jsonDoc);
-    FilterSms(jsonDoc, [], []);
+    FilterSms(jsonDoc, [], [], undefined);
     self.jsonDoc = jsonDoc;
 }
 
@@ -105,7 +121,7 @@ self.addEventListener('message', function(event) {
             ChangeData(data.json);
             break;
         case 'filter':
-            FilterSms(self.jsonDoc, data.nameFilters, data.wordFilters);
+            FilterSms(self.jsonDoc, data.nameFilters, data.wordFilters, data.dateFilters);
             break;
         case 'stop':
             self.postMessage('WORKER STOPPED: ' + data.msg + '. (buttons will no longer work)');
