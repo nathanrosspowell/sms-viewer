@@ -24,5 +24,6 @@ To Do
 * Add modifiers to filters
     - Is / Is not
     - Regex expressions
+* Improve UI
 
 [website]: http://nathanrosspowell.github.io/sms-viewer
