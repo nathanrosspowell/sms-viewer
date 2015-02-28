@@ -120,7 +120,10 @@
                 source: wordAutocomplete
             });
         });
+        
+        console.log( "AERGERGEARGEARGAERGREG", dateRange );
         // The data picker.
+        $( "#from" ).datepicker( "destroy" );
         $( "#from" ).datepicker({
             minDate: dateRange["low"],
             maxDate: dateRange["high"],
@@ -131,6 +134,7 @@
                 $( "#to" ).datepicker( "option", "minDate", selectedDate );
             }
         }).datepicker( "setDate", dateRange["low"] );
+        $( "#to" ).datepicker( "destroy" );
         $( "#to" ).datepicker({
             minDate: dateRange["low"],
             maxDate: dateRange["high"],
@@ -148,6 +152,7 @@
         ClearSms();
         nameAutocomplete = [];
         wordAutocomplete = [];
+        dateRange = undefined;
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
