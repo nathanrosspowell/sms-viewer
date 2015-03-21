@@ -26,6 +26,8 @@
     </div>
 </div>
 
+<hr/>
+
 <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 <!-- Controls -->
 <div class="ui-widget" id="add-files">
@@ -35,6 +37,8 @@
     </div>
 </div>
 
+<hr/>
+
 <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 <!-- Loading -->
 <div class="ui-widget" id="loading">
@@ -43,19 +47,17 @@
     </div>
 </div>
 
+<hr/>
+
 <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 <!-- Filters -->
 <div id="projects">
-    <!-- Names -->
-    <h3>Filter Names</h3>
-    <div>
-        <div id="extra-filter-name" /></div>
-        <button class="add-filter-name">Add Filter</button>
-        <button class="update-sms">Update SMS</button>
-    </div>
-    <!-- Dates -->
-    <h3>Filter Dates</h3>
-    <div>
+    <ul>
+        <li><a href="#tabs-1">Filter Dates</a></li>
+        <li><a href="#tabs-2">Filter Names</a></li>
+        <li><a href="#tabs-3">Filter Words</a></li>
+    </ul>
+    <div id="tabs-1">
         <div id="extra-filter-date" />
             <label for="from">From</label>
             <input type="text" id="from" name="from">
@@ -64,9 +66,12 @@
         </div>
         <button class="update-sms">Update SMS</button>
     </div>
-    <!-- Words -->
-    <h3>Filter Words</h3>
-    <div>
+    <div id="tabs-2">
+        <div id="extra-filter-name" /></div>
+        <button class="add-filter-name">Add Filter</button>
+        <button class="update-sms">Update SMS</button>
+    </div>
+    <div id="tabs-3">
         <div id="extra-filter-word" /></div>
         <button class="add-filter-word">Add Filter</button>
         <button class="update-sms">Update SMS</button>
