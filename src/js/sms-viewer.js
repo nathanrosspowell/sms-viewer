@@ -74,7 +74,6 @@
             case 'AddSms':
                 var smsList = $('#sortable-sms');
                 var li = $('<li/>')
-                    .addClass('ui-state-default')
                     .addClass(data.received ? "sms-received" : "sms-sent" )
                     .appendTo(smsList);
                 var div = $('<div/>')
@@ -272,10 +271,6 @@
     $.datepicker.setDefaults({ dateFormat: 'dd MM yy' });
     // jQuery UI setup.
     $( "#projects" ).tabs();
-    $( "#sortable-sms" ).sortable({
-        placeholder: "ui-state-highlight"
-    });
-    $( "#sortable-sms" ).disableSelection();
     // Loading bars.
     var progressbar = $( "#progressbar" );
     var progressLabel = $( ".progress-label" );

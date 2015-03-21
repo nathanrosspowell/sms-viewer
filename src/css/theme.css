@@ -9,7 +9,12 @@ body {
     padding: 0; 
 }
 
-#sortable-sms > li { margin: 0; padding: 0px, 5px, 0px, 5px; font-size: 0.8em; height: 6.0em; }
+#sortable-sms > li { 
+    margin: 0; 
+    padding: 0px, 5px, 0px, 5px; 
+    font-size: 0.8em; 
+    height: 6.0em; 
+}
 
 #drop_zone {
     border: 2px dashed #bbb;
@@ -43,8 +48,10 @@ body {
 }
 
 .sms-sent {
-    text-align: right;
+    background: #444444;
 }
 
 .sms-received {
+    text-align: right;
+    background: #0972a5;
 }
