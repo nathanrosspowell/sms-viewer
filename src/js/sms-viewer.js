@@ -271,7 +271,7 @@
     // Set up the page.
     $.datepicker.setDefaults({ dateFormat: 'dd MM yy' });
     // jQuery UI setup.
-    $( "#projects" ).accordion();
+    $( "#projects" ).tabs();
     $( "#sortable-sms" ).sortable({
         placeholder: "ui-state-highlight"
     });
