@@ -102,7 +102,7 @@ function FilterSms(jsonDoc, nameFilters, wordFilters, dateFilters) {
                 }
             }
         }
-        self.postMessage({"cmd" : "progress", "loaded" : index + 1, "total" : length});
+        self.postMessage({"cmd" : "Progress", "loaded" : index + 1, "total" : length});
     }
 }
 

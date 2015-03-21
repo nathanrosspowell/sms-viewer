@@ -17,7 +17,8 @@
                 alert('File read cancelled');
             };
             reader.onload = function(e) {
-                progressbar.progressbar( "value", 100  );
+                $( "#progressbar" ).progressbar( "value", 100  );
+                SetupProgressBar();
                 var rawData = reader.result;
                 NewSmsData(rawData);
             }
@@ -35,8 +36,10 @@
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function updateProgress(evt) {
         if (evt.lengthComputable) {
-            var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
-            progressbar.progressbar( "value", percentLoaded  );
+            var decimal = (evt.loaded / evt.total);
+            var percentLoaded = Math.round( decimal * 100);
+            $( "#progressbar" ).progressbar( "value", percentLoaded  );
+            //console.log( "progress:", percentLoaded );
         }
     }
 
@@ -66,7 +69,7 @@
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function HandleWorkerUpdate(event) {
         var data = event.data;
-        console.log( "HandleWorkerUpdate: " + JSON.stringify(data));
+        //console.log( "HandleWorkerUpdate: " + JSON.stringify(data));
         switch (data.cmd) {
             case 'SetupFilters':
                 SetupFilters( data.names, data.words, data.dates );
@@ -86,9 +89,12 @@
                     .text(data.body)
                     .appendTo(div);
                 break;
-            case 'progress':
-                var percentLoaded = Math.round((data.loaded / data.total) * 100);
-                progressbar.progressbar( "value", percentLoaded  );
+            case 'Progress':
+                updateProgress( { 
+                    "loaded" : data.loaded, 
+                    "total" : data.total, 
+                    "lengthComputable" : true }
+                );
                 break;
             default:
                 break;
@@ -119,8 +125,6 @@
                 source: wordAutocomplete
             });
         });
-        
-        console.log( "AERGERGEARGEARGAERGREG", dateRange );
         // The data picker.
         $( "#from" ).datepicker( "destroy" );
         $( "#from" ).datepicker({
@@ -206,7 +210,7 @@
             }
             var x2js = new X2JS();
             var jsonData = x2js.xml_str2json(xmlString);
-            console.log( JSON.stringify( jsonData) );
+            //console.log( JSON.stringify( jsonData) );
             dataWorker.postMessage({ "cmd" : 'json', "json" : jsonData});
         } else {
             var xmlDoc = jQuery.parseXML(xmlString);
@@ -258,6 +262,21 @@
         });
     }
 
+    function SetupProgressBar() {
+        var progressbar = $( "#progressbar" );
+        var progressLabel = $( ".progress-label" );
+        progressbar.progressbar({
+            value: 0,
+            change: function() {
+                var value = progressbar.progressbar( "value" );
+                progressLabel.text( value + "%" );
+            },
+            complete: function() {
+                progressLabel.text( "Complete!" );
+            }
+        });
+    }
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //  Globals.
     var dataWorker = undefined;
@@ -272,20 +291,10 @@
     // jQuery UI setup.
     $( "#projects" ).tabs();
     // Loading bars.
-    var progressbar = $( "#progressbar" );
-    var progressLabel = $( ".progress-label" );
-    progressbar.progressbar({
-        value: false,
-        change: function() {
-            progressLabel.text( progressbar.progressbar( "value" ) + "%" );
-        },
-        complete: function() {
-            progressLabel.text( "Complete!" );
-        }
-    });
     // The 'remove' buttons functionality.
     SetupFilterCreation("name");
     SetupFilterCreation("word");
+    SetupProgressBar();
     // Setup the files listeners.
     var dropZone = document.getElementById('drop_zone');
     dropZone.addEventListener('dragover', HandleDragOver, false);
