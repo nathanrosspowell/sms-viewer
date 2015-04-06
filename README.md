@@ -7,8 +7,9 @@ Dev Install
 ===========
 
     apt-get install -y nodejs
-    npm install -g grunt-cli
+    npm install -g grunt-cli bower
     npm install
+    bower install
     grunt server
 
 XML Data
