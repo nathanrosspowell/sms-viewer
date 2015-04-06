@@ -3,6 +3,14 @@
 
 Some code to open and view text message backup files for easier browsing.
 
+Dev Install
+===========
+
+    apt-get install -y nodejs
+    npm install -g grunt-cli
+    npm install
+    grunt server
+
 XML Data
 ========
 
