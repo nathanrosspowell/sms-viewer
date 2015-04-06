@@ -67,6 +67,25 @@
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    function HighlightWords( text ) {
+        var words = text.split(" ");
+        for (var i = 0; i < words.length; ++i)
+        {
+            var word = words[i];
+            for (var j = 0; j < currentWordFilters.length; ++j)
+            {
+                var filter = currentWordFilters[j]; 
+                if (word.indexOf(filter) > -1 )
+                {
+                    var highlight = "<span class='highlight'>" + filter + "</span>"
+                    words[i] = word.replace( filter, highlight );
+                    break;
+                }
+            }
+        }
+        return words.join(" ");
+    }
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function HandleWorkerUpdate(event) {
         var data = event.data;
         //console.log( "HandleWorkerUpdate: " + JSON.stringify(data));
@@ -86,7 +105,7 @@
                     .text((data.received ? "From" : "To") + " " + data.header)
                     .appendTo(div);
                 var body = $('<p/>')
-                    .text(data.body)
+                    .html(HighlightWords(data.body))
                     .appendTo(div);
                 break;
             case 'Progress':
@@ -193,6 +212,7 @@
                 "high" : high
             };
         }
+        currentWordFilters = wordFilters;
         dataWorker.postMessage({
             "cmd" : 'filter',
             "nameFilters" : nameFilters,
@@ -284,6 +304,7 @@
     var nameAutocomplete = [];
     var wordAutocomplete = [];
     var dateRange = undefined;
+    var currentWordFilters = [];
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Set up the page.
