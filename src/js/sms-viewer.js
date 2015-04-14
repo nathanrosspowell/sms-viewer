@@ -127,13 +127,13 @@
             names = []
         }
         if (typeof words === 'undefined') {
-            names = []
+            words = []
         }
-        nameAutocomplete = jQuery.unique(nameAutocomplete.concat(names));
-        wordAutocomplete = jQuery.unique(wordAutocomplete.concat(words));
         if (typeof dates !== 'undefined') {
             dateRange = dates;
         }
+        nameAutocomplete = jQuery.unique(nameAutocomplete.concat(names));
+        wordAutocomplete = jQuery.unique(wordAutocomplete.concat(words));
         $("input.filter-name").each(function() {
             $(this).autocomplete({
                 source: nameAutocomplete
